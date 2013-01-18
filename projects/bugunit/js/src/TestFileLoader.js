@@ -65,7 +65,7 @@ var TestFileLoader = Class.extend(Obj, {
         var registyEntries = registry.getRegistryEntries();
         registyEntries.forEach(function(registryEntry) {
             var annotations = registryEntry.getAnnotations();
-            for (var i = 0, size = annotations.length; i <= size; i++) {
+            for (var i = 0, size = annotations.length; i < size; i++) {
                 var annotation = annotations[i];
                 if (annotation.name === "TestFile") {
                     var bugPackSource = registryEntry.getBugPackSource();

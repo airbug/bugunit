@@ -22,6 +22,7 @@ var targetTask = buildbug.targetTask;
 //-------------------------------------------------------------------------------
 
 var aws = enableModule("aws");
+var bugpack = enableModule("bugpack");
 var core = enableModule("core");
 var nodejs = enableModule("nodejs");
 
@@ -41,7 +42,8 @@ buildProperties({
             start: "node ./scripts/bugunit-start.js"
         },
         dependencies: {
-            bugpack: "https://s3.amazonaws.com/node_modules/bugpack-0.0.3.tgz"
+            bugpack: "https://s3.amazonaws.com/node_modules/bugpack-0.0.3.tgz",
+            npm: "1.1.x"
         }
     },
     sourcePaths: [
@@ -81,6 +83,17 @@ buildTarget("local").buildFlow(
             properties: {
                 packageJson: buildProject.getProperties().packageJson,
                 sourcePaths: buildProject.getProperties().sourcePaths
+            }
+        }),
+        targetTask('generateBugPackRegistry', {
+            init: function(task, buildProject, properties) {
+                var nodePackage = nodejs.findNodePackage(
+                    buildProject.getProperties().packageJson.name,
+                    buildProject.getProperties().packageJson.version
+                );
+                task.updateProperties({
+                    sourceRoot: nodePackage.getBuildPath()
+                });
             }
         }),
         targetTask("packNodePackage", {

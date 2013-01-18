@@ -19,7 +19,7 @@ var bugpack = require('bugpack').context();
 //-------------------------------------------------------------------------------
 
 var BugUnit = bugpack.require('bugunit.BugUnit');
-var TestScan = bugpack.requre('bugunit.TestScan');
+var TestScan = bugpack.require('bugunit.TestScan');
 var TestFileLoader = bugpack.require('bugunit.TestFileLoader');
 
 
@@ -43,9 +43,12 @@ var BugUnitModule = {};
  * @param {string} modulePath
  */
 BugUnitModule.loadAndScanTestFilesFromNodeModule = function(modulePath) {
+    //TODO BRN: install the module first
+
+
     var testFileLoader = new TestFileLoader(modulePath);
     testFileLoader.load();
-    var testScan = new TestScan();
+    var testScan = new TestScan(modulePath);
     testScan.scan();
 };
 

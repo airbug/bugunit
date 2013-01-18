@@ -1,28 +1,32 @@
 //-------------------------------------------------------------------------------
-// Requires
+// Annotations
 //-------------------------------------------------------------------------------
 
 //@Package('bugunit')
 
 //@Export('TestScan')
 
-//@Require('Annotate')
 //@Require('Class')
 //@Require('Obj')
+//@Require('annotate.Annotate')
 //@Require('bugunit.BugUnit')
 //@Require('bugunit.Test')
 
-var bugpack = require('bugpack').context();
+
+//-------------------------------------------------------------------------------
+// Common Modules
+//-------------------------------------------------------------------------------
+
+var bugpackApi = require('bugpack');
+var bugpack = bugpackApi.context();
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Annotate = bugpack.require('Annotate');
 var Class = bugpack.require('Class');
 var Obj = bugpack.require('Obj');
-
 var BugUnit = bugpack.require('bugunit.BugUnit');
 var Test = bugpack.require('bugunit.Test');
 
@@ -37,7 +41,7 @@ var TestScan = Class.extend(Obj, {
     // Constructor
     //-------------------------------------------------------------------------------
 
-    _constructor: function() {
+    _constructor: function(modulePath) {
 
         this._super();
 
@@ -46,6 +50,11 @@ var TestScan = Class.extend(Obj, {
         // Declare Variables
         //-------------------------------------------------------------------------------
 
+        /**
+         * @private
+         * @type {string}
+         */
+        this.modulePath = modulePath;
     },
 
 
@@ -57,6 +66,12 @@ var TestScan = Class.extend(Obj, {
      *
      */
     scan: function() {
+        var targetContext = bugpackApi.context(this.modulePath);
+
+        //NOTE BRN: We must pull Annotate from the modules context. Otherwise the Annotate that we pull will not
+        //have any annotations registered.
+
+        var Annotate = targetContext.require('annotate.Annotate');
         var testAnnotations = Annotate.getAnnotationsByType("Test");
         if (testAnnotations) {
             testAnnotations.forEach(function(annotation) {

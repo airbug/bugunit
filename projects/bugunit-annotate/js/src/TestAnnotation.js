@@ -1,13 +1,18 @@
 //-------------------------------------------------------------------------------
-// Requires
+// Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugunit')
+//@Package('bugunit-annotate')
 
 //@Export('TestAnnotation')
 
-//@Require('Annotation')
 //@Require('Class')
+//@Require('annotate.Annotation')
+
+
+//-------------------------------------------------------------------------------
+// Common Modules
+//-------------------------------------------------------------------------------
 
 var bugpack = require('bugpack').context();
 
@@ -16,8 +21,8 @@ var bugpack = require('bugpack').context();
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Annotation = bugpack.require('Annotation');
 var Class = bugpack.require('Class');
+var Annotation = bugpack.require('annotate.Annotation');
 
 
 //-------------------------------------------------------------------------------
@@ -90,4 +95,4 @@ TestAnnotation.test = function() {
 // Exports
 //-------------------------------------------------------------------------------
 
-bugpack.export("bugunit.TestAnnotation", TestAnnotation);
+bugpack.export("bugunit-annotate.TestAnnotation", TestAnnotation);
