@@ -1,5 +1,5 @@
 //-------------------------------------------------------------------------------
-// Requires
+// Annotations
 //-------------------------------------------------------------------------------
 
 //@Package('bugunit')
@@ -11,6 +11,10 @@
 //@Require('bugunit.TestFileLoader')
 
 
+//-------------------------------------------------------------------------------
+// Common Modules
+//-------------------------------------------------------------------------------
+
 var bugpack = require('bugpack').context();
 
 
@@ -18,9 +22,9 @@ var bugpack = require('bugpack').context();
 // BugPack
 //-------------------------------------------------------------------------------
 
-var BugUnit = bugpack.require('bugunit.BugUnit');
-var TestScan = bugpack.require('bugunit.TestScan');
-var TestFileLoader = bugpack.require('bugunit.TestFileLoader');
+var BugUnit =           bugpack.require('bugunit.BugUnit');
+var TestScan =          bugpack.require('bugunit.TestScan');
+var TestFileLoader =    bugpack.require('bugunit.TestFileLoader');
 
 
 //-------------------------------------------------------------------------------
@@ -31,11 +35,6 @@ var BugUnitModule = {};
 
 
 //-------------------------------------------------------------------------------
-// Static Variables
-//-------------------------------------------------------------------------------
-
-
-//-------------------------------------------------------------------------------
 // Static Methods
 //-------------------------------------------------------------------------------
 
@@ -43,9 +42,7 @@ var BugUnitModule = {};
  * @param {string} modulePath
  */
 BugUnitModule.loadAndScanTestFilesFromNodeModule = function(modulePath) {
-    //TODO BRN: install the module first
-
-
+    console.log("Running bug unit tests on module '" + modulePath + "'");
     var testFileLoader = new TestFileLoader(modulePath);
     testFileLoader.load();
     var testScan = new TestScan(modulePath);

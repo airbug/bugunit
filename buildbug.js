@@ -42,12 +42,14 @@ buildProperties({
             start: "node ./scripts/bugunit-start.js"
         },
         dependencies: {
-            bugpack: "https://s3.amazonaws.com/node_modules/bugpack-0.0.3.tgz",
-            npm: "1.1.x"
+            bugpack: "https://s3.amazonaws.com/node_modules/bugpack-0.0.3.tgz"
         }
     },
     sourcePaths: [
         "../bugjs/projects/bugjs/js/src",
+        "../bugjs/projects/bugfs/js/src",
+        "../bugjs/projects/bugflow/js/src",
+        "../bugjs/projects/bugboil/js/src",
         "./projects/bugunit/js/src"
     ],
     scriptPaths: [

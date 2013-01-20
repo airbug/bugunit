@@ -62,8 +62,8 @@ var TestFileLoader = Class.extend(Obj, {
     load: function() {
         var targetContext = bugpackApi.context(this.modulePath);
         var registry = targetContext.getRegistry();
-        var registyEntries = registry.getRegistryEntries();
-        registyEntries.forEach(function(registryEntry) {
+        var registryEntries = registry.getRegistryEntries();
+        registryEntries.forEach(function(registryEntry) {
             var annotations = registryEntry.getAnnotations();
             for (var i = 0, size = annotations.length; i < size; i++) {
                 var annotation = annotations[i];
