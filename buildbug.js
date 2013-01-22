@@ -34,12 +34,12 @@ var nodejs = enableModule("nodejs");
 buildProperties({
     packageJson: {
         name: "bugunit",
-        version: "0.0.1",
-        main: "./lib/bug-unit-module.js",
+        version: "0.0.2",
+        main: "./lib/bug-unit-cli-module.js",
         private: true,
         bin: "bin/bugunit",
         scripts: {
-            start: "node ./scripts/bugunit-start.js"
+            start: "node ./scripts/bugunit-cli-start.js"
         },
         dependencies: {
             bugpack: "https://s3.amazonaws.com/node_modules/bugpack-0.0.3.tgz"
@@ -50,13 +50,13 @@ buildProperties({
         "../bugjs/projects/bugfs/js/src",
         "../bugjs/projects/bugflow/js/src",
         "../bugjs/projects/bugboil/js/src",
-        "./projects/bugunit/js/src"
+        "./projects/bugunit-cli/js/src"
     ],
     scriptPaths: [
-        "./projects/bugunit/js/scripts"
+        "./projects/bugunit-cli/js/scripts"
     ],
     binPaths: [
-        "./projects/bugunit/bin"
+        "./projects/bugunit-cli/bin"
     ]
 });
 

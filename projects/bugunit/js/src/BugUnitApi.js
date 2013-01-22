@@ -4,7 +4,7 @@
 
 //@Package('bugunit')
 
-//@Export('BugUnitModule')
+//@Export('BugUnitApi')
 
 //@Require('bugunit.BugUnit')
 //@Require('bugunit.TestScan')
@@ -31,7 +31,7 @@ var TestFileLoader =    bugpack.require('bugunit.TestFileLoader');
 // Declare Class
 //-------------------------------------------------------------------------------
 
-var BugUnitModule = {};
+var BugUnitApi = {};
 
 
 //-------------------------------------------------------------------------------
@@ -39,9 +39,32 @@ var BugUnitModule = {};
 //-------------------------------------------------------------------------------
 
 /**
+ *
+ */
+BugUnitApi.start = function() {
+    BugUnitApi.loadAndScanTestFilesFromNodeModule(module);
+    var reportCard = BugUnitApi.runTests(true);
+
+    console.log("Number of PASSED tests: " + reportCard.numberPassedTests());
+    console.log("Number of FAILED tests: " + reportCard.numberFailedTests());
+
+    reportCard.getFailedTestResultList().forEach(function(testResult) {
+        console.log("Test '" + testResult.getTest().getName() + "' FAILED with " + testResult.numberFailedAssertions() + " of " +
+            testResult.numberAssertions() + " failed assertions.");
+        testResult.getFailedAssertionResultList().forEach(function(assertionResult) {
+            console.log(assertionResult.getMessage());
+        });
+        if (testResult.errorOccurred()) {
+            console.log("An error occurred while running this test.");
+            console.log(testResult.getError().stack);
+        }
+    });
+};
+
+/**
  * @param {string} modulePath
  */
-BugUnitModule.loadAndScanTestFilesFromNodeModule = function(modulePath) {
+BugUnitApi.loadAndScanTestFilesFromNodeModule = function(modulePath) {
     console.log("Running bug unit tests on module '" + modulePath + "'");
     var testFileLoader = new TestFileLoader(modulePath);
     testFileLoader.load();
@@ -52,7 +75,7 @@ BugUnitModule.loadAndScanTestFilesFromNodeModule = function(modulePath) {
 /**
  * @param {Test} test
  */
-BugUnitModule.registerTest = function(test) {
+BugUnitApi.registerTest = function(test) {
     BugUnit.registerTest(test);
 };
 
@@ -60,7 +83,7 @@ BugUnitModule.registerTest = function(test) {
  * @param {boolean} logResults
  * @return {ReportCard}
  */
-BugUnitModule.runTests = function(logResults) {
+BugUnitApi.runTests = function(logResults) {
     return BugUnit.runTests(logResults);
 };
 
@@ -69,4 +92,4 @@ BugUnitModule.runTests = function(logResults) {
 // Exports
 //-------------------------------------------------------------------------------
 
-bugpack.export('bugunit.BugUnitModule', BugUnitModule);
+bugpack.export('bugunit.BugUnitApi', BugUnitApi);
