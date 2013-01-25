@@ -6,8 +6,8 @@
 
 //@Export('BugUnitCli')
 
-//@Require('BugFlow')
-//@Require('BugFs')
+//@Require('bugflow.BugFlow')
+//@Require('bugfs.BugFs')
 
 
 //-------------------------------------------------------------------------------
@@ -63,8 +63,10 @@ BugUnitCli.installPath = process.cwd() + "/.bugunit";
  * 2) Installs the target module specified in the command line to ./.bugunit/node_modules
  * 3) Installs bugunit in to the target module after the target module has been specified
  * 4) Calls node ./.bugunit/node_modules/[targetModule]/node_modules/bugunit/scripts/bugunit-run.js to start the tests
+ * @param {string} targetModulePath
+ * @param {function(Error)} callback
  */
-BugUnitCli.start = function(targetModulePath) {
+BugUnitCli.start = function(targetModulePath, callback) {
     var targetModuleInstalledPath = null;
     $series([
         $task(function(flow) {
@@ -105,10 +107,8 @@ BugUnitCli.start = function(targetModulePath) {
             );
         })
     ]).execute(function(error) {
-        if (error) {
-            console.log(error);
-            console.log(error.stack);
-            process.exit(1);
+        if (callback) {
+            callback(error);
         }
     });
 };

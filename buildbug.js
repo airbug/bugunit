@@ -83,15 +83,15 @@ buildTarget("local").buildFlow(
         targetTask("clean"),
         targetTask("createNodePackage", {
             properties: {
-                packageJson: buildProject.getProperties().packageJson,
-                sourcePaths: buildProject.getProperties().sourcePaths
+                packageJson: buildProject.getProperty("packageJson"),
+                sourcePaths: buildProject.getProperty("sourcePaths")
             }
         }),
         targetTask('generateBugPackRegistry', {
             init: function(task, buildProject, properties) {
                 var nodePackage = nodejs.findNodePackage(
-                    buildProject.getProperties().packageJson.name,
-                    buildProject.getProperties().packageJson.version
+                    buildProject.getProperty("packageJson.name"),
+                    buildProject.getProperty("packageJson.version")
                 );
                 task.updateProperties({
                     sourceRoot: nodePackage.getBuildPath()
@@ -100,8 +100,8 @@ buildTarget("local").buildFlow(
         }),
         targetTask("packNodePackage", {
             properties: {
-                packageName: buildProject.getProperties().packageJson.name,
-                packageVersion: buildProject.getProperties().packageJson.version
+                packageName: buildProject.getProperty("packageJson.name"),
+                packageVersion: buildProject.getProperty("packageJson.version")
             }
         }),
         targetTask("s3EnsureBucket", {
@@ -111,8 +111,8 @@ buildTarget("local").buildFlow(
         }),
         targetTask("s3PutFile", {
             init: function(task, buildProject, properties) {
-                var packedNodePackage = nodejs.findPackedNodePackage(buildProject.getProperties().packageJson.name,
-                    buildProject.getProperties().packageJson.version);
+                var packedNodePackage = nodejs.findPackedNodePackage(buildProject.getProperty("packageJson.name"),
+                    buildProject.getProperty("packageJson.version"));
                 task.updateProperties({
                     file: packedNodePackage.getFilePath(),
                     options: {

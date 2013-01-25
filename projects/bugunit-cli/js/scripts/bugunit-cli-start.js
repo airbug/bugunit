@@ -30,4 +30,10 @@ targetModulePath = path.resolve(targetModulePath);
 
 //TODO BRN: Add ability to target specific test OR a test suite.
 
-BugUnitCli.start(targetModulePath);
+BugUnitCli.start(targetModulePath, function(error) {
+    if (error) {
+        console.log(error);
+        console.log(error.stack);
+        process.exit(1);
+    }
+});
