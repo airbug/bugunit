@@ -34,7 +34,7 @@ var nodejs = enableModule("nodejs");
 buildProperties({
     packageJson: {
         name: "bugunit",
-        version: "0.0.2",
+        version: "0.0.3",
         main: "./lib/bug-unit-cli-module.js",
         private: true,
         bin: "bin/bugunit",
@@ -42,7 +42,8 @@ buildProperties({
             start: "node ./scripts/bugunit-cli-start.js"
         },
         dependencies: {
-            bugpack: "https://s3.amazonaws.com/node_modules/bugpack-0.0.3.tgz"
+            tar: "0.1.x",
+            bugpack: "https://s3.amazonaws.com/airbug/bugpack-0.0.3.tgz"
         }
     },
     sourcePaths: [
@@ -70,11 +71,76 @@ buildProperties({
 // Declare Flows
 //-------------------------------------------------------------------------------
 
+// Clean Flow
+//-------------------------------------------------------------------------------
+
 buildTarget("clean").buildFlow(
     targetTask("clean")
 );
 
+
+// Local Flow
+//-------------------------------------------------------------------------------
+
 buildTarget("local").buildFlow(
+    series([
+
+        // TODO BRN: This "clean" task is temporary until we"re not modifying the build so much. This also ensures that
+        // old source files are removed. We should figure out a better way of doing that.
+
+        targetTask("clean"),
+        targetTask("createNodePackage", {
+            properties: {
+                packageJson: buildProject.getProperty("packageJson"),
+                sourcePaths: buildProject.getProperty("sourcePaths"),
+                binPaths: buildProject.getProperty("binPaths")
+            }
+        }),
+        targetTask('generateBugPackRegistry', {
+            init: function(task, buildProject, properties) {
+                var nodePackage = nodejs.findNodePackage(
+                    buildProject.getProperty("packageJson.name"),
+                    buildProject.getProperty("packageJson.version")
+                );
+                task.updateProperties({
+                    sourceRoot: nodePackage.getBuildPath()
+                });
+            }
+        }),
+        targetTask("packNodePackage", {
+            properties: {
+                packageName: buildProject.getProperty("packageJson.name"),
+                packageVersion: buildProject.getProperty("packageJson.version")
+            }
+        }),
+        targetTask("s3EnsureBucket", {
+            properties: {
+                bucket: buildProject.getProperty("bucket-local")
+            }
+        }),
+        targetTask("s3PutFile", {
+            init: function(task, buildProject, properties) {
+                var packedNodePackage = nodejs.findPackedNodePackage(buildProject.getProperty("packageJson.name"),
+                    buildProject.getProperty("packageJson.version"));
+                task.updateProperties({
+                    file: packedNodePackage.getFilePath(),
+                    options: {
+                        ACL: 'public-read'
+                    }
+                });
+            },
+            properties: {
+                bucket: buildProject.getProperty("bucket-local")
+            }
+        })
+    ])
+).makeDefault();
+
+
+// Prod Flow
+//-------------------------------------------------------------------------------
+
+buildTarget("prod").buildFlow(
     series([
 
         // TODO BRN: This "clean" task is temporary until we"re not modifying the build so much. This also ensures that
@@ -106,7 +172,7 @@ buildTarget("local").buildFlow(
         }),
         targetTask("s3EnsureBucket", {
             properties: {
-                bucket: "node_modules"
+                bucket: "airbug"
             }
         }),
         targetTask("s3PutFile", {
@@ -121,8 +187,8 @@ buildTarget("local").buildFlow(
                 });
             },
             properties: {
-                bucket: "node_modules"
+                bucket: "airbug"
             }
         })
     ])
-).makeDefault();
+);

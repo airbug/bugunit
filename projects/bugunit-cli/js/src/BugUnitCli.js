@@ -16,7 +16,10 @@
 
 var bugpack = require('bugpack').context(module);
 var child_process = require('child_process');
+var fs = require('fs');
 var path = require('path');
+var tar = require('tar');
+var zlib = require('zlib');
 
 
 //-------------------------------------------------------------------------------
@@ -31,6 +34,7 @@ var BugFs =     bugpack.require('bugfs.BugFs');
 // Simplify References
 //-------------------------------------------------------------------------------
 
+var $if = BugFlow.$if;
 var $series = BugFlow.$series;
 var $task = BugFlow.$task;
 
@@ -85,11 +89,13 @@ BugUnitCli.start = function(targetModulePath, callback) {
             });
         }),
         $task(function(flow) {
-            BugFs.exists(path.join(targetModuleInstalledPath, "scripts/bugunit-run.js"), function(exists) {
+            var bugunitRunScriptPath = path.join(targetModuleInstalledPath, "scripts/bugunit-run.js");
+            BugFs.exists(bugunitRunScriptPath, function(exists) {
                 if (exists) {
                     flow.complete();
                 } else {
-                    flow.error(new Error("Target test module must include bugunit scripts and classes in order to run unit tests"));
+                    flow.error(new Error("Target test module must include bugunit scripts and classes in order to " +
+                        "run unit tests. Could not find bugunit-run script at '" + bugunitRunScriptPath + "'"));
                 }
             });
         }),
@@ -133,29 +139,169 @@ BugUnitCli.createInstallDir = function(installPath, callback) {
  * @param {function(Error, Object)} callback
  */
 BugUnitCli.installNodeModule = function(modulePath, installPath, callback) {
-    var child = child_process.exec('npm install "' + modulePath + '"', {cwd: installPath, env: process.env},
-        function (error, stdout, stderr) {
-            if (!error) {
-                console.log(stdout);
-                var lines = stdout.split("\n");
-                var parts = lines[0].split(" ");
-                var nameAndVersion = parts.shift();
-                var nameAndVersionParts = nameAndVersion.split("@");
-                var installedPath = path.resolve(path.join(installPath, parts.join(" ")));
-                var data = {
-                    installedPath: installedPath,
-                    name: nameAndVersionParts[0],
-                    version: nameAndVersionParts[1]
-                };
-                callback(null, data);
-            } else {
-                console.log(stderr);
-                callback(error);
-            }
+    BugUnitCli.getModuleData(modulePath, function(error, moduleData) {
+        if (!error) {
+            var child = child_process.exec('npm install "' + modulePath + '"', {cwd: installPath, env: process.env},
+                function (error, stdout, stderr) {
+                    if (!error) {
+                        var installedPath = BugFs.joinPaths([installPath, "node_modules", moduleData.name]).getAbsolutePath();
+                        var data = {
+                            installedPath: installedPath,
+                            name: moduleData.name,
+                            version: moduleData.version
+                        };
+                        callback(null, data);
+                    } else {
+                        console.log(stderr);
+                        callback(error);
+                    }
+                }
+            );
+        } else {
+            callback(error);
         }
-    );
+    });
 };
 
+/**
+ * @private
+ * @param {string} modulePathString
+ * @param {function(Error, {
+ *      name: string,
+ *      version: string
+ * })} callback
+ */
+BugUnitCli.getModuleData = function(modulePathString, callback) {
+    var modulePath = BugFs.path(modulePathString);
+    var moduleData = null;
+    $if (function(flow) {
+            modulePath.isDirectory(function(error, result) {
+                if (!error) {
+                    flow.assert(result);
+                } else {
+                    flow.error(error);
+                }
+            });
+        },
+        $task(function(flow) {
+            BugUnitCli.getModuleDataFromFolder(modulePath, function(error, data) {
+                if (!error) {
+                    moduleData = data;
+                    flow.complete();
+                } else {
+                    flow.error(error);
+                }
+            });
+        })
+    ).$elseIf (function(flow) {
+            modulePath.isFile(function(error, result) {
+                if (!error) {
+                    flow.assert(result);
+                } else {
+                    flow.error(error);
+                }
+            });
+        },
+        $task(function(flow) {
+            var ext = BugFs.path(modulePath).getExtName();
+            if (ext === ".tgz") {
+                BugUnitCli.getModuleDataFromTarball(modulePath, function(error, data) {
+                    if (!error) {
+                        moduleData = data;
+                        flow.complete();
+                    } else {
+                        flow.error(error);
+                    }
+                });
+            } else {
+                flow.error(new Error("Not a module '" + modulePath.getAbsolutePath() + "'"));
+            }
+        })
+    ).$else (
+        $task(function(flow) {
+            flow.error(new Error("Cannot open module '" + modulePath.getAbsolutePath() + "' because it is an " +
+                "unknown type."));
+        })
+    ).execute(function(error) {
+        callback(error, moduleData);
+    });
+};
+
+/**
+ * @private
+ * @param {Path} modulePath
+ * @param {function(Error, {
+ *     name: string,
+ *     version: string
+ * })} callback
+ */
+BugUnitCli.getModuleDataFromFolder = function(modulePath, callback) {
+    var packageJsonPath = BugFs.joinPaths(modulePath, "package.json");
+    var moduleData = {};
+    $if (function(flow) {
+            packageJsonPath.isFile(function(error, result) {
+                if (!error) {
+                    flow.assert(result);
+                } else {
+                    flow.error(error);
+                }
+            });
+        },
+        $task(function(flow) {
+            //TODO BRN: retrieve the name and version data from the package.json file
+        })
+    ).$else (
+        $task(function(flow) {
+            flow.error(new Error("Cannot get module data from '" + modulePath.getAbsolutePath() + "' because " +
+                "the package.json file cannot be found"));
+        })
+    ).execute(function(error) {
+        if (!error) {
+            callback(null, moduleData);
+        } else {
+            callback(error);
+        }
+    });
+};
+
+/**
+ * @private
+ * @param {Path} modulePath
+ * @param {function(Error, {
+ *     name: string,
+ *     version: string
+ * })} callback
+ */
+BugUnitCli.getModuleDataFromTarball = function(modulePath, callback) {
+    var moduleData = null;
+    var packageJsonFound = false;
+    var readStream = fs.createReadStream(modulePath.getAbsolutePath());
+    readStream.on("end", function() {
+        readStream.destroy();
+        if (!packageJsonFound) {
+            callback(new Error("Could not find package.json in file '" + modulePath.getAbsolutePath() + "'"));
+        } else {
+            callback(null, moduleData);
+        }
+    });
+    readStream.pipe(zlib.createGunzip()).pipe(tar.Parse())
+        .on("entry", function (entry) {
+            if (entry.props.path === "package/package.json") {
+                packageJsonFound = true;
+                var jsonString = "";
+                entry.on("data", function (c) {
+                    jsonString += c.toString();
+                });
+                entry.on("end", function () {
+                    moduleData = JSON.parse(jsonString);
+
+                    //TODO BRN: No need to look any further
+
+                    //readStream.destroy();
+                });
+            }
+        });
+};
 
 //-------------------------------------------------------------------------------
 // Exports
