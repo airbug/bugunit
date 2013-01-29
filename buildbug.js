@@ -115,7 +115,7 @@ buildTarget("local").buildFlow(
         }),
         targetTask("s3EnsureBucket", {
             properties: {
-                bucket: buildProject.getProperty("bucket-local")
+                bucket: buildProject.getProperty("local-bucket")
             }
         }),
         targetTask("s3PutFile", {
@@ -130,7 +130,7 @@ buildTarget("local").buildFlow(
                 });
             },
             properties: {
-                bucket: buildProject.getProperty("bucket-local")
+                bucket: buildProject.getProperty("local-bucket")
             }
         })
     ])
