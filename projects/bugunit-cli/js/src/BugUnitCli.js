@@ -276,14 +276,6 @@ BugUnitCli.getModuleDataFromTarball = function(modulePath, callback) {
     var moduleData = null;
     var packageJsonFound = false;
     var readStream = fs.createReadStream(modulePath.getAbsolutePath());
-    readStream.on("end", function() {
-        readStream.destroy();
-        if (!packageJsonFound) {
-            callback(new Error("Could not find package.json in file '" + modulePath.getAbsolutePath() + "'"));
-        } else {
-            callback(null, moduleData);
-        }
-    });
     readStream.pipe(zlib.createGunzip()).pipe(tar.Parse())
         .on("entry", function (entry) {
             if (entry.props.path === "package/package.json") {
@@ -299,6 +291,14 @@ BugUnitCli.getModuleDataFromTarball = function(modulePath, callback) {
 
                     //readStream.destroy();
                 });
+            }
+        })
+        .on("end", function() {
+            readStream.destroy();
+            if (!packageJsonFound) {
+                callback(new Error("Could not find package.json in file '" + modulePath.getAbsolutePath() + "'"));
+            } else {
+                callback(null, moduleData);
             }
         });
 };
