@@ -2,6 +2,8 @@
 // Requires
 //-------------------------------------------------------------------------------
 
+//@Require('bugunit.BugUnitCli')
+
 
 //-------------------------------------------------------------------------------
 // Common Modules
@@ -22,7 +24,7 @@ var BugUnitCli =    bugpack.require('bugunit.BugUnitCli');
 // Bootstrap
 //-------------------------------------------------------------------------------
 
-targetModulePath = process.argv[2];
+var targetModulePath = process.argv[2];
 if (!targetModulePath) {
     throw new Error("Must specify the module to install and test");
 }
