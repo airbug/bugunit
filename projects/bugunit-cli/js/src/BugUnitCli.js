@@ -141,7 +141,9 @@ BugUnitCli.createInstallDir = function(installPath, callback) {
 BugUnitCli.installNodeModule = function(modulePath, installPath, callback) {
     BugUnitCli.getModuleData(modulePath, function(error, moduleData) {
         if (!error) {
-            var child = child_process.exec('npm install "' + modulePath + '"', {cwd: installPath, env: process.env},
+            var npmDirname = path.dirname(require.resolve('npm'));
+            var npmBin = path.resolve(npmDirname, "../..", ".bin/npm");
+            var child = child_process.exec(npmBin + ' install "' + modulePath + '"', {cwd: installPath, env: process.env},
                 function (error, stdout, stderr) {
                     if (!error) {
                         var installedPath = BugFs.joinPaths([installPath, "node_modules", moduleData.name]).getAbsolutePath();
