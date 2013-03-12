@@ -34,7 +34,7 @@ var nodejs = enableModule("nodejs");
 buildProperties({
     packageJson: {
         name: "bugunit",
-        version: "0.0.4",
+        version: "0.0.5",
         main: "./lib/bug-unit-cli-module.js",
         private: true,
         bin: "bin/bugunit",
@@ -44,7 +44,7 @@ buildProperties({
         dependencies: {
             npm: "1.2.x",
             tar: "0.1.x",
-            bugpack: "https://s3.amazonaws.com/airbug/bugpack-0.0.3.tgz"
+            bugpack: "https://s3.amazonaws.com/airbug/bugpack-0.0.4.tgz"
         }
     },
     sourcePaths: [
@@ -127,7 +127,7 @@ buildTarget("local").buildFlow(
                 task.updateProperties({
                     file: packedNodePackage.getFilePath(),
                     options: {
-                        ACL: 'public-read'
+                        acl: 'public-read'
                     }
                 });
             },
@@ -184,7 +184,7 @@ buildTarget("prod").buildFlow(
                 task.updateProperties({
                     file: packedNodePackage.getFilePath(),
                     options: {
-                        ACL: 'public-read'
+                        acl: 'public-read'
                     }
                 });
             },
