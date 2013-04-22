@@ -34,7 +34,7 @@ var nodejs = enableModule("nodejs");
 buildProperties({
     packageJson: {
         name: "bugunit",
-        version: "0.0.6",
+        version: "0.0.7",
         main: "./lib/bug-unit-cli-module.js",
         private: true,
         bin: "bin/bugunit",

@@ -37,25 +37,23 @@ var TestRunner = {};
 // Static Methods
 //-------------------------------------------------------------------------------
 
-TestRunner.runTest = function(test, logResults) {
+/**
+ * @param {Test} test
+ * @param {boolean} logResults
+ * @param {function(Error, TestResult)} callback
+ */
+TestRunner.runTest = function(test, logResults, callback) {
     var testResult = new TestResult(test);
     var hearAssertionResult = function(event) {
-        var assertionResult = event.data;
+        var assertionResult = event.getData();
         if (logResults) {
             console.log(assertionResult.getMessage());
         }
         testResult.addAssertionResult(assertionResult);
     };
     test.addEventListener(Test.EventType.ASSERTION_RESULT, hearAssertionResult);
-    try {
-        if (logResults) {
-            console.log("Running test [" + test.getName() + "]");
-        }
-        test.runTest();
-        if (logResults) {
-            console.log("Completed test [" + test.getName() + "]");
-        }
-    } catch (error) {
+    var hearTestError = function(event) {
+        var error = event.getData();
         if (logResults) {
             console.log("Error occurred - message:" + error.message);
         }
@@ -63,9 +61,26 @@ TestRunner.runTest = function(test, logResults) {
             console.log("Aborted test [" + test.getName() + "]");
         }
         testResult.setError(error);
-    }
-    test.removeEventListener(Test.EventType.ASSERTION_RESULT, hearAssertionResult);
-    return testResult;
+        test.removeEventListener(Test.EventType.ASSERTION_RESULT, hearAssertionResult);
+        test.removeEventListener(Test.EventType.TEST_ERROR, hearTestError);
+        test.removeEventListener(Test.EventType.TEST_COMPLETE, hearTestComplete);
+        callback(null, testResult);
+    };
+    test.addEventListener(Test.EventType.TEST_ERROR, hearTestError);
+    var hearTestComplete = function(event) {
+        if (logResults) {
+            console.log("Running test [" + test.getName() + "]");
+        }
+        if (logResults) {
+            console.log("Completed test [" + test.getName() + "]");
+        }
+        test.removeEventListener(Test.EventType.ASSERTION_RESULT, hearAssertionResult);
+        test.removeEventListener(Test.EventType.TEST_ERROR, hearTestError);
+        test.removeEventListener(Test.EventType.TEST_COMPLETE, hearTestComplete);
+        callback(null, testResult);
+    };
+    test.addEventListener(Test.EventType.TEST_COMPLETE, hearTestComplete);
+    test.runTest();
 };
 
 

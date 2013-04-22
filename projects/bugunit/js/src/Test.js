@@ -57,6 +57,12 @@ var Test = Class.extend(EventDispatcher, {
 
         /**
          * @private
+         * @type {boolean}
+         */
+        this.errorOccurred = false;
+
+        /**
+         * @private
          * @type {string}
          */
         this.name = name;
@@ -188,12 +194,33 @@ var Test = Class.extend(EventDispatcher, {
     },
 
     /**
+     * @param {Error} error
+     */
+    error: function(error) {
+        this.errorOccurred = true;
+        this.dispatchTestErrorEvent(error);
+    },
+
+
+    //-------------------------------------------------------------------------------
+    // PrivateClass Methods
+    //-------------------------------------------------------------------------------
+
+    /**
      * @private
      */
     runTest: function() {
         this.setup();
-        this.test();
-        this.tearDown();
+        try {
+            this.test();
+        } catch(error) {
+            this.error(error);
+        } finally {
+            this.tearDown();
+            if (!this.errorOccurred) {
+                this.dispatchTestCompleteEvent();
+            }
+        }
     },
 
     /**
@@ -204,6 +231,21 @@ var Test = Class.extend(EventDispatcher, {
     dispatchAssertionResultEvent: function(valid, message) {
         var assertionResult = new AssertionResult(valid, message);
         this.dispatchEvent(new Event(Test.EventType.ASSERTION_RESULT, assertionResult));
+    },
+
+    /**
+     * @private
+     * @param {Error} error
+     */
+    dispatchTestErrorEvent: function(error) {
+        this.dispatchEvent(new Event(Test.EventType.TEST_ERROR, error));
+    },
+
+    /**
+     * @private
+     */
+    dispatchTestCompleteEvent: function() {
+        this.dispatchEvent(new Event(Test.EventType.TEST_COMPLETE));
     },
 
     /**
@@ -252,7 +294,9 @@ var Test = Class.extend(EventDispatcher, {
 //-------------------------------------------------------------------------------
 
 Test.EventType = {
-    ASSERTION_RESULT: 'assertion_result'
+    ASSERTION_RESULT: 'assertion_result',
+    TEST_ERROR: 'test_error',
+    TEST_COMPLETE: 'test_complete'
 };
 
 

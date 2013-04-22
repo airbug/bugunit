@@ -22,4 +22,10 @@ var path = require('path');
 var BugUnitApi = bugpack.require('bugunit.BugUnitApi');
 
 
-BugUnitApi.start();
+BugUnitApi.start(function(error) {
+    if (error) {
+        console.error(error);
+        console.error(error.stack);
+        process.exit(1);
+    }
+});
