@@ -59,6 +59,12 @@ var Test = Class.extend(EventDispatcher, {
          * @private
          * @type {boolean}
          */
+        this.completed = false;
+
+        /**
+         * @private
+         * @type {boolean}
+         */
         this.errorOccurred = false;
 
         /**
@@ -69,7 +75,7 @@ var Test = Class.extend(EventDispatcher, {
 
         /**
          * @private
-         * @type {{setup: function(Object), test: function(Object), tearDown: function(Object)}}
+         * @type {{async: boolean, setup: function(Object), test: function(Object), tearDown: function(Object)}}
          */
         this.testObject = testObject;
     },
@@ -194,11 +200,26 @@ var Test = Class.extend(EventDispatcher, {
     },
 
     /**
+     *
+     */
+    complete: function() {
+        if (!this.completed) {
+            this.completed = true;
+            this.tearDown();
+            if (!this.errorOccurred) {
+                this.dispatchTestCompleteEvent();
+            }
+        }
+    },
+
+    /**
      * @param {Error} error
      */
     error: function(error) {
-        this.errorOccurred = true;
-        this.dispatchTestErrorEvent(error);
+        if (!this.errorOccurred) {
+            this.errorOccurred = true;
+            this.dispatchTestErrorEvent(error);
+        }
     },
 
 
@@ -216,9 +237,8 @@ var Test = Class.extend(EventDispatcher, {
         } catch(error) {
             this.error(error);
         } finally {
-            this.tearDown();
-            if (!this.errorOccurred) {
-                this.dispatchTestCompleteEvent();
+            if (!this.testObject.async || this.errorOccurred) {
+                this.complete();
             }
         }
     },

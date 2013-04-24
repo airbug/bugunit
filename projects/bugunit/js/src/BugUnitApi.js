@@ -39,38 +39,14 @@ var BugUnitApi = {};
 //-------------------------------------------------------------------------------
 
 /**
- * @param {function(Error)} callback
+ * @param {function(Error, ReportCard)} callback
  */
 BugUnitApi.start = function(callback) {
     BugUnitApi.loadAndScanTestFilesFromNodeModule(module);
     try {
         BugUnitApi.runTests(true, function(error, reportCard) {
             if (!error) {
-                console.log("Number of PASSED tests: " + reportCard.numberPassedTests());
-                console.log("Number of FAILED tests: " + reportCard.numberFailedTests());
-
-                var errorOccurred = false;
-                var testsFailed = false;
-                reportCard.getFailedTestResultList().forEach(function(testResult) {
-                    testsFailed = true;
-                    console.log("Test '" + testResult.getTest().getName() + "' FAILED with " + testResult.numberFailedAssertions() + " of " +
-                        testResult.numberAssertions() + " failed assertions.");
-                    testResult.getFailedAssertionResultList().forEach(function(assertionResult) {
-                        console.log(assertionResult.getMessage());
-                    });
-                    if (testResult.errorOccurred()) {
-                        errorOccurred = true;
-                        console.log("An error occurred while running this test.");
-                        console.log(testResult.getError().stack);
-                    }
-                });
-                if (errorOccurred) {
-                    callback(new Error("Error occurred while running tests."));
-                } else if (testsFailed) {
-                    callback(new Error("Some tests failed while running the tests"));
-                } else {
-                    callback();
-                }
+                callback(null, reportCard);
             } else {
                 callback(error);
             }
