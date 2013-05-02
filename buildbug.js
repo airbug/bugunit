@@ -34,7 +34,7 @@ var nodejs = enableModule("nodejs");
 buildProperties({
     packageJson: {
         name: "bugunit",
-        version: "0.0.5",
+        version: "0.0.8",
         main: "./lib/bug-unit-cli-module.js",
         private: true,
         bin: "bin/bugunit",
@@ -44,7 +44,7 @@ buildProperties({
         dependencies: {
             npm: "1.2.x",
             tar: "0.1.x",
-            bugpack: "https://s3.amazonaws.com/airbug/bugpack-0.0.4.tgz"
+            bugpack: "https://s3.amazonaws.com/airbug/bugpack-0.0.5.tgz"
         }
     },
     sourcePaths: [

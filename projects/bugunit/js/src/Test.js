@@ -57,13 +57,25 @@ var Test = Class.extend(EventDispatcher, {
 
         /**
          * @private
+         * @type {boolean}
+         */
+        this.completed = false;
+
+        /**
+         * @private
+         * @type {boolean}
+         */
+        this.errorOccurred = false;
+
+        /**
+         * @private
          * @type {string}
          */
         this.name = name;
 
         /**
          * @private
-         * @type {{setup: function(Object), test: function(Object), tearDown: function(Object)}}
+         * @type {{async: boolean, setup: function(Object), test: function(Object), tearDown: function(Object)}}
          */
         this.testObject = testObject;
     },
@@ -188,12 +200,47 @@ var Test = Class.extend(EventDispatcher, {
     },
 
     /**
+     *
+     */
+    complete: function() {
+        if (!this.completed) {
+            this.completed = true;
+            this.tearDown();
+            if (!this.errorOccurred) {
+                this.dispatchTestCompleteEvent();
+            }
+        }
+    },
+
+    /**
+     * @param {Error} error
+     */
+    error: function(error) {
+        if (!this.errorOccurred) {
+            this.errorOccurred = true;
+            this.dispatchTestErrorEvent(error);
+        }
+    },
+
+
+    //-------------------------------------------------------------------------------
+    // PrivateClass Methods
+    //-------------------------------------------------------------------------------
+
+    /**
      * @private
      */
     runTest: function() {
         this.setup();
-        this.test();
-        this.tearDown();
+        try {
+            this.test();
+        } catch(error) {
+            this.error(error);
+        } finally {
+            if (!this.testObject.async || this.errorOccurred) {
+                this.complete();
+            }
+        }
     },
 
     /**
@@ -204,6 +251,21 @@ var Test = Class.extend(EventDispatcher, {
     dispatchAssertionResultEvent: function(valid, message) {
         var assertionResult = new AssertionResult(valid, message);
         this.dispatchEvent(new Event(Test.EventType.ASSERTION_RESULT, assertionResult));
+    },
+
+    /**
+     * @private
+     * @param {Error} error
+     */
+    dispatchTestErrorEvent: function(error) {
+        this.dispatchEvent(new Event(Test.EventType.TEST_ERROR, error));
+    },
+
+    /**
+     * @private
+     */
+    dispatchTestCompleteEvent: function() {
+        this.dispatchEvent(new Event(Test.EventType.TEST_COMPLETE));
     },
 
     /**
@@ -252,7 +314,9 @@ var Test = Class.extend(EventDispatcher, {
 //-------------------------------------------------------------------------------
 
 Test.EventType = {
-    ASSERTION_RESULT: 'assertion_result'
+    ASSERTION_RESULT: 'assertion_result',
+    TEST_ERROR: 'test_error',
+    TEST_COMPLETE: 'test_complete'
 };
 
 

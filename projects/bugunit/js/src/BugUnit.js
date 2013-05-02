@@ -1,5 +1,5 @@
 //-------------------------------------------------------------------------------
-// Requires
+// Annotations
 //-------------------------------------------------------------------------------
 
 //@Package('bugunit')
@@ -7,8 +7,14 @@
 //@Export('BugUnit')
 
 //@Require('Set')
+//@Require('bugboil.BugBoil')
 //@Require('bugunit.ReportCard')
 //@Require('bugunit.TestRunner')
+
+
+//-------------------------------------------------------------------------------
+// Common Modules
+//-------------------------------------------------------------------------------
 
 var bugpack = require('bugpack').context();
 
@@ -17,10 +23,17 @@ var bugpack = require('bugpack').context();
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Set = bugpack.require('Set');
+var Set =           bugpack.require('Set');
+var BugBoil =       bugpack.require('bugboil.BugBoil');
+var ReportCard =    bugpack.require('bugunit.ReportCard');
+var TestRunner =    bugpack.require('bugunit.TestRunner');
 
-var ReportCard = bugpack.require('bugunit.ReportCard');
-var TestRunner = bugpack.require('bugunit.TestRunner');
+
+//-------------------------------------------------------------------------------
+// Simplify References
+//-------------------------------------------------------------------------------
+
+var $foreachParallel = BugBoil.$foreachParallel;
 
 
 //-------------------------------------------------------------------------------
@@ -56,15 +69,26 @@ BugUnit.registerTest = function(test) {
 
 /**
  * @param {boolean} logResults
- * @return {ReportCard}
+ * @param {function(Error, ReportCard)} callback
  */
-BugUnit.runTests = function(logResults) {
+BugUnit.runTests = function(logResults, callback) {
     var reportCard = new ReportCard();
-    BugUnit.registeredTestSet.forEach(function(test) {
-        var testResult = TestRunner.runTest(test, logResults);
-        reportCard.addTestResult(testResult);
+    $foreachParallel(BugUnit.registeredTestSet.getValueArray(), function(boil, registeredTest) {
+        TestRunner.runTest(registeredTest, logResults, function(error, testResult) {
+            if (!error) {
+                reportCard.addTestResult(testResult);
+                boil.bubble();
+            } else {
+                boil.bubble(error);
+            }
+        });
+    }).execute(function(error) {
+        if (!error) {
+            callback(null, reportCard);
+        } else {
+            callback(error);
+        }
     });
-    return reportCard;
 };
 
 
