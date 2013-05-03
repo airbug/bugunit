@@ -283,7 +283,7 @@ var Test = Class.extend(EventDispatcher, {
      */
     setup: function() {
         if (TypeUtil.isFunction(this.testObject.setup)) {
-            this.testObject.setup();
+            this.testObject.setup(this);
         }
     },
 
