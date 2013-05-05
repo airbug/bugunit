@@ -47,6 +47,7 @@ BugUnitApi.start(function(error, reportCard) {
             if (testResult.errorOccurred()) {
                 errorOccurred = true;
                 console.log("An error occurred while running this test.");
+                console.log(testResult.getError());
                 console.log(testResult.getError().stack);
             }
         });
