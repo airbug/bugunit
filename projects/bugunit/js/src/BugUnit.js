@@ -7,7 +7,7 @@
 //@Export('BugUnit')
 
 //@Require('Set')
-//@Require('bugboil.BugBoil')
+//@Require('bugflow.BugFlow')
 //@Require('bugunit.ReportCard')
 //@Require('bugunit.TestRunner')
 
@@ -24,7 +24,7 @@ var bugpack = require('bugpack').context();
 //-------------------------------------------------------------------------------
 
 var Set =           bugpack.require('Set');
-var BugBoil =       bugpack.require('bugboil.BugBoil');
+var BugFlow =       bugpack.require('bugflow.BugFlow');
 var ReportCard =    bugpack.require('bugunit.ReportCard');
 var TestRunner =    bugpack.require('bugunit.TestRunner');
 
@@ -33,7 +33,7 @@ var TestRunner =    bugpack.require('bugunit.TestRunner');
 // Simplify References
 //-------------------------------------------------------------------------------
 
-var $foreachParallel = BugBoil.$foreachParallel;
+var $foreachParallel = BugFlow.$foreachParallel;
 
 
 //-------------------------------------------------------------------------------
@@ -73,13 +73,13 @@ BugUnit.registerTest = function(test) {
  */
 BugUnit.runTests = function(logResults, callback) {
     var reportCard = new ReportCard();
-    $foreachParallel(BugUnit.registeredTestSet.getValueArray(), function(boil, registeredTest) {
+    $foreachParallel(BugUnit.registeredTestSet.getValueArray(), function(flow, registeredTest) {
         TestRunner.runTest(registeredTest, logResults, function(error, testResult) {
             if (!error) {
                 reportCard.addTestResult(testResult);
-                boil.bubble();
+                flow.complete();
             } else {
-                boil.bubble(error);
+                flow.error(error);
             }
         });
     }).execute(function(error) {
