@@ -93,10 +93,11 @@ var FunctionSpy = Class.extend(Obj, {
     spy: function() {
         var _this = this;
         var spy = function() {
-            var args = arguments;
+            /** @type {Array.<*>} */
+            var args = Array.prototype.slice.call(arguments, 0);
             var functionCall = new FunctionCall(args);
             _this.functionCallList.add(functionCall);
-            _this.targetFunction.apply(this, args);
+            return _this.targetFunction.apply(this, args);
         };
         Proxy.proxy(spy, _this, [
             "getCallCount",
