@@ -33,7 +33,7 @@ var TestRunner =    bugpack.require('bugunit.TestRunner');
 // Simplify References
 //-------------------------------------------------------------------------------
 
-var $foreachParallel = BugFlow.$foreachParallel;
+var $forEachParallel = BugFlow.$forEachParallel;
 
 
 //-------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ BugUnit.registerTest = function(test) {
  */
 BugUnit.runTests = function(logResults, callback) {
     var reportCard = new ReportCard();
-    $foreachParallel(BugUnit.registeredTestSet.getValueArray(), function(flow, registeredTest) {
+    $forEachParallel(BugUnit.registeredTestSet.getValueArray(), function(flow, registeredTest) {
         TestRunner.runTest(registeredTest, logResults, function(error, testResult) {
             if (!error) {
                 reportCard.addTestResult(testResult);
