@@ -101,7 +101,8 @@ var FunctionSpy = Class.extend(Obj, {
         };
         Proxy.proxy(spy, _this, [
             "getCallCount",
-            "wasCalled"
+            "wasCalled",
+            "wasNotCalled"
         ]);
         return spy;
     },

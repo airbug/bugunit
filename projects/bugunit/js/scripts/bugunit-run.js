@@ -4,7 +4,7 @@
 
 //@Package('bugunit')
 
-//@Require('bugunit.BugUnitApi')
+//@Require('bugunit.BugUnit')
 
 
 //-------------------------------------------------------------------------------
@@ -19,7 +19,7 @@ var path = require('path');
 // BugPack
 //-------------------------------------------------------------------------------
 
-var BugUnitApi = bugpack.require('bugunit.BugUnitApi');
+var BugUnit = bugpack.require('bugunit.BugUnit');
 
 
 //-------------------------------------------------------------------------------
@@ -27,8 +27,8 @@ var BugUnitApi = bugpack.require('bugunit.BugUnitApi');
 //-------------------------------------------------------------------------------
 
 var reportCardReceived = false;
-
-BugUnitApi.start(function(error, reportCard) {
+var bugUnit = new BugUnit();
+bugUnit.start(function(error, reportCard) {
     if (!error) {
         reportCardReceived = true;
 
@@ -71,6 +71,11 @@ process.on('exit', function() {
 
     if (!reportCardReceived) {
         console.error("Tests never completed. This is likely an async test that is not completing.");
+        bugUnit.getTestRunnerSet().forEach(function(testRunner) {
+            if (!testRunner.isCompleted()) {
+                console.log("Test '" + testRunner.getTest().getName() + "' did not complete");
+            }
+        });
         process.exit(1);
     }
 });

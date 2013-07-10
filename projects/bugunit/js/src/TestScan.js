@@ -9,7 +9,6 @@
 //@Require('Class')
 //@Require('Obj')
 //@Require('annotate.Annotate')
-//@Require('bugunit.BugUnit')
 //@Require('bugunit.Test')
 
 
@@ -27,7 +26,6 @@ var bugpack = bugpackApi.context();
 
 var Class = bugpack.require('Class');
 var Obj = bugpack.require('Obj');
-var BugUnit = bugpack.require('bugunit.BugUnit');
 var Test = bugpack.require('bugunit.Test');
 
 
@@ -41,14 +39,20 @@ var TestScan = Class.extend(Obj, {
     // Constructor
     //-------------------------------------------------------------------------------
 
-    _constructor: function(modulePath) {
+    _constructor: function(modulePath, bugUnit) {
 
         this._super();
 
 
         //-------------------------------------------------------------------------------
-        // Declare Variables
+        // Instance Properties
         //-------------------------------------------------------------------------------
+
+        /**
+         * @private
+         * @type {BugUnit}
+         */
+        this.bugUnit    = bugUnit;
 
         /**
          * @private
@@ -59,13 +63,14 @@ var TestScan = Class.extend(Obj, {
 
 
     //-------------------------------------------------------------------------------
-    // Public Class Methods
+    // Public Instance Methods
     //-------------------------------------------------------------------------------
 
     /**
      *
      */
     scan: function() {
+        var _this = this;
         var targetContext = bugpackApi.context(this.modulePath);
 
         //NOTE BRN: We must pull Annotate from the modules context. Otherwise the Annotate that we pull will not
@@ -78,7 +83,7 @@ var TestScan = Class.extend(Obj, {
                 var testObject = annotation.getReference();
                 var testName = annotation.getName();
                 var test = new Test(testName, testObject);
-                BugUnit.registerTest(test);
+                _this.bugUnit.registerTest(test);
             });
         }
     }

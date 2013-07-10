@@ -6,10 +6,14 @@
 
 //@Export('BugUnit')
 
+//@Require('Class')
+//@Require('Obj')
 //@Require('Set')
 //@Require('bugflow.BugFlow')
 //@Require('bugunit.ReportCard')
+//@Require('bugunit.TestFileLoader')
 //@Require('bugunit.TestRunner')
+//@Require('bugunit.TestScan')
 
 
 //-------------------------------------------------------------------------------
@@ -23,10 +27,14 @@ var bugpack = require('bugpack').context();
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Set =           bugpack.require('Set');
-var BugFlow =       bugpack.require('bugflow.BugFlow');
-var ReportCard =    bugpack.require('bugunit.ReportCard');
-var TestRunner =    bugpack.require('bugunit.TestRunner');
+var Class           = bugpack.require('Class');
+var Obj             = bugpack.require('Obj');
+var Set             = bugpack.require('Set');
+var BugFlow         = bugpack.require('bugflow.BugFlow');
+var ReportCard      = bugpack.require('bugunit.ReportCard');
+var TestFileLoader  = bugpack.require('bugunit.TestFileLoader');
+var TestRunner      = bugpack.require('bugunit.TestRunner');
+var TestScan        = bugpack.require('bugunit.TestScan');
 
 
 //-------------------------------------------------------------------------------
@@ -40,56 +48,118 @@ var $forEachParallel = BugFlow.$forEachParallel;
 // Declare Class
 //-------------------------------------------------------------------------------
 
-var BugUnit = {};
+//TODO BRN: Add domain error support to this library
+
+var BugUnit = Class.extend(Obj, {
+
+    //-------------------------------------------------------------------------------
+    // Constructor
+    //-------------------------------------------------------------------------------
+
+    _constructor: function() {
+
+        this._super();
 
 
-//-------------------------------------------------------------------------------
-// Static Variables
-//-------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------
+        // Instance Properties
+        //-------------------------------------------------------------------------------
 
-/**
- * @private
- * @type {Set<Test>}
- */
-BugUnit.registeredTestSet = new Set();
+        /**
+         * @private
+         * @type {Set.<Test>}
+         */
+        this.registeredTestSet  = new Set();
+
+        /**
+         * @private
+         * @type {Set.<TestRunner>}
+         */
+        this.testRunnerSet      = new Set();
+    },
 
 
-//-------------------------------------------------------------------------------
-// Static Methods
-//-------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------
+    // Getters and Setters
+    //-------------------------------------------------------------------------------
 
-/**
- * @param {Test} test
- */
-BugUnit.registerTest = function(test) {
-    if (!BugUnit.registeredTestSet.contains(test)) {
-        BugUnit.registeredTestSet.add(test);
-    }
-};
+    /**
+     * @return {Set.<TestRunner>}
+     */
+    getTestRunnerSet: function() {
+        return this.testRunnerSet;
+    },
 
-/**
- * @param {boolean} logResults
- * @param {function(Error, ReportCard)} callback
- */
-BugUnit.runTests = function(logResults, callback) {
-    var reportCard = new ReportCard();
-    $forEachParallel(BugUnit.registeredTestSet.getValueArray(), function(flow, registeredTest) {
-        TestRunner.runTest(registeredTest, logResults, function(error, testResult) {
-            if (!error) {
-                reportCard.addTestResult(testResult);
-                flow.complete();
-            } else {
-                flow.error(error);
-            }
-        });
-    }).execute(function(error) {
-        if (!error) {
-            callback(null, reportCard);
-        } else {
+
+    //-------------------------------------------------------------------------------
+    // Public Instance Methods
+    //-------------------------------------------------------------------------------
+
+    /**
+     * @param {function(Error, ReportCard)} callback
+     */
+    start: function(callback) {
+        this.loadAndScanTestFilesFromNodeModule(module);
+        try {
+            this.runTests(true, function(error, reportCard) {
+                if (!error) {
+                    callback(null, reportCard);
+                } else {
+                    callback(error);
+                }
+            });
+        } catch(error) {
             callback(error);
         }
-    });
-};
+    },
+
+    /**
+     * @param {string} modulePath
+     */
+    loadAndScanTestFilesFromNodeModule: function(modulePath) {
+        console.log("Running bug unit tests on module '" + modulePath + "'");
+        var testFileLoader = new TestFileLoader(modulePath);
+        testFileLoader.load();
+        var testScan = new TestScan(modulePath, this);
+        testScan.scan();
+    },
+
+    /**
+     * @param {Test} test
+     */
+    registerTest: function(test) {
+        if (!this.registeredTestSet.contains(test)) {
+            this.registeredTestSet.add(test);
+        }
+    },
+
+    /**
+     * @param {boolean} logResults
+     * @param {function(Error, ReportCard)} callback
+     */
+    runTests: function(logResults, callback) {
+        var _this = this;
+        var reportCard = new ReportCard();
+        $forEachParallel(this.registeredTestSet.getValueArray(), function(flow, registeredTest) {
+            var testRunner = new TestRunner(registeredTest, logResults);
+            _this.testRunnerSet.add(testRunner);
+            testRunner.runTest(function(error, testResult) {
+                if (!error) {
+                    reportCard.addTestResult(testResult);
+                    flow.complete();
+                } else {
+                    flow.error(error);
+                }
+            });
+        }).execute(function(error) {
+            if (!error) {
+                callback(null, reportCard);
+            } else {
+                callback(error);
+            }
+        });
+    }
+});
 
 
 //-------------------------------------------------------------------------------
