@@ -7,22 +7,22 @@
 //@Export('TestAnnotation')
 
 //@Require('Class')
-//@Require('annotate.Annotation')
+//@Require('bugmeta.Annotation')
 
 
 //-------------------------------------------------------------------------------
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context();
+var bugpack         = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Class = bugpack.require('Class');
-var Annotation = bugpack.require('annotate.Annotation');
+var Class           = bugpack.require('Class');
+var Annotation      = bugpack.require('bugmeta.Annotation');
 
 
 //-------------------------------------------------------------------------------

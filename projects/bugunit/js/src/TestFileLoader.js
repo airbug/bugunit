@@ -1,28 +1,29 @@
 //-------------------------------------------------------------------------------
-// Requires
+// Annotations
 //-------------------------------------------------------------------------------
 
 //@Package('bugunit')
 
 //@Export('TestFileLoader')
 
-//@Require('Annotate')
-//@Require('BugUnit')
 //@Require('Class')
 //@Require('Obj')
-//@Require('Test')
 
-var bugpackApi = require('bugpack');
-var bugpack = bugpackApi.context();
+
+//-------------------------------------------------------------------------------
+// Common Modules
+//-------------------------------------------------------------------------------
+
+var bugpackApi  = require('bugpack');
+var bugpack     = bugpackApi.context();
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Class = bugpack.require('Class');
-var Obj = bugpack.require('Obj');
-
+var Class       = bugpack.require('Class');
+var Obj         = bugpack.require('Obj');
 
 
 //-------------------------------------------------------------------------------

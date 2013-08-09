@@ -8,7 +8,7 @@
 
 //@Require('Class')
 //@Require('Obj')
-//@Require('annotate.Annotate')
+//@Require('bugmeta.BugMeta')
 //@Require('bugunit.Test')
 
 
@@ -73,11 +73,12 @@ var TestScan = Class.extend(Obj, {
         var _this = this;
         var targetContext = bugpackApi.context(this.modulePath);
 
-        //NOTE BRN: We must pull Annotate from the modules context. Otherwise the Annotate that we pull will not
-        //have any annotations registered.
+        //NOTE BRN: We must pull BugMeta from the modules context. Otherwise the BugMeta that we pull will not
+        //have any meta info registered.
 
-        var Annotate = targetContext.require('annotate.Annotate');
-        var testAnnotations = Annotate.getAnnotationsByType("Test");
+        var BugMeta = targetContext.require('bugmeta.BugMeta');
+        var bugmeta = BugMeta.context();
+        var testAnnotations = bugmeta.getAnnotationsByType("Test");
         if (testAnnotations) {
             testAnnotations.forEach(function(annotation) {
                 var testObject = annotation.getReference();
