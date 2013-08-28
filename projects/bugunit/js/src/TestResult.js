@@ -1,5 +1,5 @@
 //-------------------------------------------------------------------------------
-// Requires
+// Annotations
 //-------------------------------------------------------------------------------
 
 //@Package('bugunit')
@@ -10,6 +10,11 @@
 //@Require('List')
 //@Require('Obj')
 
+
+//-------------------------------------------------------------------------------
+// Common Modules
+//-------------------------------------------------------------------------------
+
 var bugpack = require('bugpack').context();
 
 
@@ -17,9 +22,9 @@ var bugpack = require('bugpack').context();
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Class = bugpack.require('Class');
-var List = bugpack.require('List');
-var Obj = bugpack.require('Obj');
+var Class   = bugpack.require('Class');
+var List    = bugpack.require('List');
+var Obj     = bugpack.require('Obj');
 
 
 //-------------------------------------------------------------------------------
