@@ -81,7 +81,7 @@ var TestScan = Class.extend(Obj, {
         var testAnnotations = bugmeta.getAnnotationsByType("Test");
         if (testAnnotations) {
             testAnnotations.forEach(function(annotation) {
-                var testObject = annotation.getReference();
+                var testObject = annotation.getAnnotationReference();
                 var testName = annotation.getName();
                 var test = new Test(testName, testObject);
                 _this.bugUnit.registerTest(test);
