@@ -43,7 +43,7 @@ var ReportCard = Class.extend(Obj, {
 
 
         //-------------------------------------------------------------------------------
-        // Declare Variables
+        // Private Properties
         //-------------------------------------------------------------------------------
 
         this.testResultList = new List();

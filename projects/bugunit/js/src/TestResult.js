@@ -43,7 +43,7 @@ var TestResult = Class.extend(Obj, {
 
 
         //-------------------------------------------------------------------------------
-        // Declare Variables
+        // Private Properties
         //-------------------------------------------------------------------------------
 
         this.assertionResultList = new List();
