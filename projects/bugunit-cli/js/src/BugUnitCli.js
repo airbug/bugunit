@@ -6,6 +6,7 @@
 
 //@Export('BugUnitCli')
 
+//@Require('Bug')
 //@Require('bugflow.BugFlow')
 //@Require('bugfs.BugFs')
 
@@ -14,29 +15,30 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context(module);
-var child_process = require('child_process');
-var fs = require('fs');
-var path = require('path');
-var tar = require('tar');
-var zlib = require('zlib');
+var bugpack         = require('bugpack').context(module);
+var child_process   = require('child_process');
+var fs              = require('fs');
+var path            = require('path');
+var tar             = require('tar');
+var zlib            = require('zlib');
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
-var BugFlow =   bugpack.require('bugflow.BugFlow');
-var BugFs =     bugpack.require('bugfs.BugFs');
+var Bug             = bugpack.require('Bug');
+var BugFlow         = bugpack.require('bugflow.BugFlow');
+var BugFs           = bugpack.require('bugfs.BugFs');
 
 
 //-------------------------------------------------------------------------------
 // Simplify References
 //-------------------------------------------------------------------------------
 
-var $if = BugFlow.$if;
-var $series = BugFlow.$series;
-var $task = BugFlow.$task;
+var $if             = BugFlow.$if;
+var $series         = BugFlow.$series;
+var $task           = BugFlow.$task;
 
 
 //-------------------------------------------------------------------------------
@@ -100,21 +102,26 @@ BugUnitCli.start = function(targetModulePath, callback) {
             });
         }),
         $task(function(flow) {
-            child_process.exec('node ' + targetModuleInstalledPath + '/scripts/bugunit-run.js', {cwd: targetModuleInstalledPath, env: process.env},
-                function (error, stdout, stderr) {
-                    console.log(stdout);
-                    if (!error) {
-                        flow.complete();
-                    } else {
-                        console.log(stderr);
-                        flow.error(error);
-                    }
+            var childProcess = child_process.spawn('node', [targetModuleInstalledPath + '/scripts/bugunit-run.js'], {cwd: targetModuleInstalledPath, env: process.env});
+            childProcess.stdout.setEncoding('utf8');
+            childProcess.stdout.on('data', function (data) {
+                console.log(data);
+            });
+            childProcess.stderr.setEncoding('utf8');
+            childProcess.stderr.on('data', function (data) {
+                console.log(data);
+            });
+            childProcess.on('close', function (code) {
+                if (code !== 0) {
+                    flow.error(new Bug("BugUnit completed with an error"));
+                } else {
+                    flow.complete();
                 }
-            );
+            });
         })
-    ]).execute(function(error) {
+    ]).execute(function(throwable) {
         if (callback) {
-            callback(error);
+            callback(throwable);
         }
     });
 };
@@ -136,31 +143,42 @@ BugUnitCli.createInstallDir = function(installPath, callback) {
  * @private
  * @param {string} modulePath
  * @param {string} installPath
- * @param {function(Error, Object)} callback
+ * @param {function(Throwable, Object)=} callback
  */
 BugUnitCli.installNodeModule = function(modulePath, installPath, callback) {
-    BugUnitCli.getModuleData(modulePath, function(error, moduleData) {
-        if (!error) {
+    BugUnitCli.getModuleData(modulePath, function(throwable, moduleData) {
+        if (!throwable) {
             var npmDirname = path.dirname(require.resolve('npm'));
             var npmBin = path.resolve(npmDirname, "../..", ".bin/npm");
-            var child = child_process.exec(npmBin + ' install "' + modulePath + '"', {cwd: installPath, env: process.env},
-                function (error, stdout, stderr) {
-                    if (!error) {
-                        var installedPath = BugFs.joinPaths([installPath, "node_modules", moduleData.name]).getAbsolutePath();
-                        var data = {
-                            installedPath: installedPath,
-                            name: moduleData.name,
-                            version: moduleData.version
-                        };
-                        callback(null, data);
-                    } else {
-                        console.log(stderr);
-                        callback(error);
-                    }
+
+            //TODO BRN: Change out this call for child_process.spawn. this will prevent buffer overflow errors.
+
+            var child = child_process.spawn(npmBin, ['install', modulePath], {cwd: installPath, env: process.env});
+            child.stdout.setEncoding('utf8');
+            child.stdout.on('data', function (data) {
+                console.log(data);
+            });
+            child.stderr.setEncoding('utf8');
+            child.stderr.on('data', function (data) {
+                console.log(data);
+            });
+            child.on('close', function (code) {
+                //tEST
+                console.log("EXIT CODE - code:", code);
+                if (code !== 0) {
+                    callback(new Bug("InstallError", {}, "An error occurred during install of module '" + modulePath + "'"));
+                } else {
+                    var installedPath = BugFs.joinPaths([installPath, "node_modules", moduleData.name]).getAbsolutePath();
+                    var data = {
+                        installedPath: installedPath,
+                        name: moduleData.name,
+                        version: moduleData.version
+                    };
+                    callback(null, data);
                 }
-            );
+            });
         } else {
-            callback(error);
+            callback(throwable);
         }
     });
 };

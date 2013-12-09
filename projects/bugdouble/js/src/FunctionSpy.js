@@ -6,6 +6,7 @@
 
 //@Export('FunctionSpy')
 
+//@Require('ArgUtil')
 //@Require('Class')
 //@Require('List')
 //@Require('Obj')
@@ -17,13 +18,14 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context();
+var bugpack         = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
+var ArgUtil         = bugpack.require('ArgUtil');
 var Class           = bugpack.require('Class');
 var List            = bugpack.require('List');
 var Obj             = bugpack.require('Obj');
@@ -94,7 +96,7 @@ var FunctionSpy = Class.extend(Obj, {
         var _this = this;
         var spy = function() {
             /** @type {Array.<*>} */
-            var args = Array.prototype.slice.call(arguments, 0);
+            var args = ArgUtil.toArray(arguments);
             var functionCall = new FunctionCall(args);
             _this.functionCallList.add(functionCall);
             return _this.targetFunction.apply(this, args);
