@@ -17,7 +17,8 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context();
+var bugpack     = require('bugpack').context();
+var domain      = require('domain');
 
 
 //-------------------------------------------------------------------------------
@@ -109,6 +110,7 @@ var TestRunner = Class.extend(Obj, {
      * @param {function(Error, TestResult)} callback
      */
     runTest: function(callback) {
+        var _this = this;
         this.callback = callback;
         this.test.addEventListener(Test.EventType.ASSERTION_RESULT, this.hearAssertionResult, this);
         this.test.addEventListener(Test.EventType.TEST_ERROR, this.hearTestError, this);
@@ -116,7 +118,14 @@ var TestRunner = Class.extend(Obj, {
         if (this.logResults) {
             console.log("Running test [" + this.test.getName() + "]");
         }
-        this.test.runTest();
+        var d = domain.create();
+        d.on('error', function(error) {
+            _this.processError(error);
+        });
+        d.add(this.test);
+        d.run(function() {
+            _this.test.runTest();
+        });
     },
 
 
@@ -130,6 +139,16 @@ var TestRunner = Class.extend(Obj, {
     complete: function() {
         this.completed = true;
         this.callback(null, this.testResult);
+    },
+
+    /**
+     * @private
+     * @param {Error} error
+     */
+    processError: function(error) {
+        this.testResult.setError(error);
+        this.removeListeners();
+        this.complete();
     },
 
     /**
@@ -182,9 +201,7 @@ var TestRunner = Class.extend(Obj, {
         if (this.logResults) {
             console.log("Aborted test [" + this.test.getName() + "]");
         }
-        this.testResult.setError(error);
-        this.removeListeners();
-        this.complete();
+        this.processError(error);
     }
 });
 

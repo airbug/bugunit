@@ -20,7 +20,7 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context();
+var bugpack         = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ var $forEachParallel = BugFlow.$forEachParallel;
 // Declare Class
 //-------------------------------------------------------------------------------
 
-//TODO BRN: Add domain error support to this library
+//TODO BRN: Add domain throwable support to this library
 
 var BugUnit = Class.extend(Obj, {
 
@@ -62,7 +62,7 @@ var BugUnit = Class.extend(Obj, {
 
 
         //-------------------------------------------------------------------------------
-        // Instance Properties
+        // Private Properties
         //-------------------------------------------------------------------------------
 
         /**
@@ -71,6 +71,12 @@ var BugUnit = Class.extend(Obj, {
          */
         this.registeredTestSet  = new Set();
 
+        /**
+         * @private
+         * @type {ReportCard}
+         */
+        this.reportCard         = new ReportCard();
+        
         /**
          * @private
          * @type {Set.<TestRunner>}
@@ -84,6 +90,13 @@ var BugUnit = Class.extend(Obj, {
     //-------------------------------------------------------------------------------
 
     /**
+     * @return {ReportCard}
+     */
+    getReportCard: function() {
+        return this.reportCard;
+    },
+    
+    /**
      * @return {Set.<TestRunner>}
      */
     getTestRunnerSet: function() {
@@ -96,20 +109,20 @@ var BugUnit = Class.extend(Obj, {
     //-------------------------------------------------------------------------------
 
     /**
-     * @param {function(Error, ReportCard)} callback
+     * @param {function(Throwable, ReportCard=)} callback
      */
     start: function(callback) {
         this.loadAndScanTestFilesFromNodeModule(module);
         try {
-            this.runTests(true, function(error, reportCard) {
-                if (!error) {
+            this.runTests(true, function(throwable, reportCard) {
+                if (!throwable) {
                     callback(null, reportCard);
                 } else {
-                    callback(error);
+                    callback(throwable);
                 }
             });
-        } catch(error) {
-            callback(error);
+        } catch(throwable) {
+            callback(throwable);
         }
     },
 
@@ -135,27 +148,26 @@ var BugUnit = Class.extend(Obj, {
 
     /**
      * @param {boolean} logResults
-     * @param {function(Error, ReportCard)} callback
+     * @param {function(Throwable, ReportCard=)} callback
      */
     runTests: function(logResults, callback) {
         var _this = this;
-        var reportCard = new ReportCard();
         $forEachParallel(this.registeredTestSet.getValueArray(), function(flow, registeredTest) {
             var testRunner = new TestRunner(registeredTest, logResults);
             _this.testRunnerSet.add(testRunner);
-            testRunner.runTest(function(error, testResult) {
-                if (!error) {
-                    reportCard.addTestResult(testResult);
+            testRunner.runTest(function(throwable, testResult) {
+                if (!throwable) {
+                    _this.reportCard.addTestResult(testResult);
                     flow.complete();
                 } else {
-                    flow.error(error);
+                    flow.error(throwable);
                 }
             });
-        }).execute(function(error) {
-            if (!error) {
-                callback(null, reportCard);
+        }).execute(function(throwable) {
+            if (!throwable) {
+                callback(null, _this.reportCard);
             } else {
-                callback(error);
+                callback(throwable);
             }
         });
     }

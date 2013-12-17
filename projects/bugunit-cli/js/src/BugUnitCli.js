@@ -150,9 +150,6 @@ BugUnitCli.installNodeModule = function(modulePath, installPath, callback) {
         if (!throwable) {
             var npmDirname = path.dirname(require.resolve('npm'));
             var npmBin = path.resolve(npmDirname, "../..", ".bin/npm");
-
-            //TODO BRN: Change out this call for child_process.spawn. this will prevent buffer overflow errors.
-
             var child = child_process.spawn(npmBin, ['install', modulePath], {cwd: installPath, env: process.env});
             child.stdout.setEncoding('utf8');
             child.stdout.on('data', function (data) {
@@ -163,8 +160,6 @@ BugUnitCli.installNodeModule = function(modulePath, installPath, callback) {
                 console.log(data);
             });
             child.on('close', function (code) {
-                //tEST
-                console.log("EXIT CODE - code:", code);
                 if (code !== 0) {
                     callback(new Bug("InstallError", {}, "An error occurred during install of module '" + modulePath + "'"));
                 } else {

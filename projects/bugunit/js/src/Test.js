@@ -19,20 +19,19 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context();
+var bugpack         = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Class = bugpack.require('Class');
-var Event = bugpack.require('Event');
+var Class           = bugpack.require('Class');
+var Event           = bugpack.require('Event');
 var EventDispatcher = bugpack.require('EventDispatcher');
-var HashUtil = bugpack.require('HashUtil');
-var Obj = bugpack.require('Obj');
-var TypeUtil = bugpack.require('TypeUtil');
-
+var HashUtil        = bugpack.require('HashUtil');
+var Obj             = bugpack.require('Obj');
+var TypeUtil        = bugpack.require('TypeUtil');
 var AssertionResult = bugpack.require('bugunit.AssertionResult');
 
 
@@ -231,8 +230,8 @@ var Test = Class.extend(EventDispatcher, {
      * @private
      */
     runTest: function() {
-        this.setup();
         try {
+            this.setup();
             this.test();
         } catch(error) {
             this.error(error);
