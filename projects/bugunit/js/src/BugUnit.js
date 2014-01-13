@@ -48,8 +48,6 @@ var $forEachParallel = BugFlow.$forEachParallel;
 // Declare Class
 //-------------------------------------------------------------------------------
 
-//TODO BRN: Add domain throwable support to this library
-
 var BugUnit = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
