@@ -92,12 +92,16 @@ BugUnitCli.start = function(targetModulePath, callback) {
         }),
         $task(function(flow) {
             var bugunitRunScriptPath = path.join(targetModuleInstalledPath, "scripts/bugunit-run.js");
-            BugFs.exists(bugunitRunScriptPath, function(exists) {
-                if (exists) {
-                    flow.complete();
+            BugFs.exists(bugunitRunScriptPath, function(throwable, exists) {
+                if (!throwable) {
+                    if (exists) {
+                        flow.complete();
+                    } else {
+                        flow.error(new Error("Target test module must include bugunit scripts and classes in order to " +
+                            "run unit tests. Could not find bugunit-run script at '" + bugunitRunScriptPath + "'"));
+                    }
                 } else {
-                    flow.error(new Error("Target test module must include bugunit scripts and classes in order to " +
-                        "run unit tests. Could not find bugunit-run script at '" + bugunitRunScriptPath + "'"));
+                    flow.error(throwable);
                 }
             });
         }),
