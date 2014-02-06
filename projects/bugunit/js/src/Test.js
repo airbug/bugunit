@@ -162,6 +162,7 @@ var Test = Class.extend(EventDispatcher, {
 
     /**
      * @param {string} message
+     * @return {Throwable}
      */
     assertThrows: function(func, message) {
         var caughtError = undefined;
@@ -177,6 +178,7 @@ var Test = Class.extend(EventDispatcher, {
             this.dispatchAssertionResultEvent(false,
                 "[FAIL] " + message + " - Assert [throws] -  no error thrown");
         }
+        return caughtError;
     },
 
     /**
