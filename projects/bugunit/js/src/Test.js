@@ -6,6 +6,7 @@
 
 //@Export('Test')
 
+//@Require('Bug')
 //@Require('Class')
 //@Require('Event')
 //@Require('EventDispatcher')
@@ -19,20 +20,21 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack         = require('bugpack').context();
+var bugpack             = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Class           = bugpack.require('Class');
-var Event           = bugpack.require('Event');
-var EventDispatcher = bugpack.require('EventDispatcher');
-var HashUtil        = bugpack.require('HashUtil');
-var Obj             = bugpack.require('Obj');
-var TypeUtil        = bugpack.require('TypeUtil');
-var AssertionResult = bugpack.require('bugunit.AssertionResult');
+var Bug                 = bugpack.require('Bug');
+var Class               = bugpack.require('Class');
+var Event               = bugpack.require('Event');
+var EventDispatcher     = bugpack.require('EventDispatcher');
+var HashUtil            = bugpack.require('HashUtil');
+var Obj                 = bugpack.require('Obj');
+var TypeUtil            = bugpack.require('TypeUtil');
+var AssertionResult     = bugpack.require('bugunit.AssertionResult');
 
 
 //-------------------------------------------------------------------------------
@@ -58,25 +60,37 @@ var Test = Class.extend(EventDispatcher, {
          * @private
          * @type {boolean}
          */
-        this.completed = false;
+        this.completedSetup     = false;
 
         /**
          * @private
          * @type {boolean}
          */
-        this.errorOccurred = false;
+        this.completedTearDown  = false;
+
+        /**
+         * @private
+         * @type {boolean}
+         */
+        this.completedTest      = false;
+
+        /**
+         * @private
+         * @type {boolean}
+         */
+        this.errorOccurred      = false;
 
         /**
          * @private
          * @type {string}
          */
-        this.name = name;
+        this.name               = name;
 
         /**
          * @private
          * @type {{async: boolean, setup: function(Object), test: function(Object), tearDown: function(Object)}}
          */
-        this.testObject = testObject;
+        this.testObject         = testObject;
     },
 
 
@@ -93,7 +107,19 @@ var Test = Class.extend(EventDispatcher, {
 
 
     //-------------------------------------------------------------------------------
-    // Class Methods
+    // Convenience Methods
+    //-------------------------------------------------------------------------------
+
+    /**
+     * @return {boolean}
+     */
+    isAsync: function() {
+        return this.testObject.async;
+    },
+
+
+    //-------------------------------------------------------------------------------
+    // Public Methods
     //-------------------------------------------------------------------------------
 
     /**
@@ -157,9 +183,6 @@ var Test = Class.extend(EventDispatcher, {
         }
     },
 
-    //TODO BRN: For now this is just a simple function to assert an error is thrown. We should add the capability to
-    // assert for specific error types.
-
     /**
      * @param {string} message
      * @return {Throwable}
@@ -203,13 +226,42 @@ var Test = Class.extend(EventDispatcher, {
     /**
      *
      */
-    complete: function() {
-        if (!this.completed) {
-            this.completed = true;
-            this.tearDown();
+    completeSetup: function() {
+        if (!this.completedSetup) {
+            this.completedSetup = true;
+            if (!this.errorOccurred) {
+                this.dispatchSetupCompleteEvent();
+            }
+        } else {
+            throw new Bug("AlreadySetup", {}, "Test setup already complete");
+        }
+    },
+
+    /**
+     *
+     */
+    completeTearDown: function() {
+        if (!this.completedTearDown) {
+            this.completedTearDown = true;
+            if (!this.errorOccurred) {
+                this.dispatchTearDownCompleteEvent();
+            }
+        } else {
+            throw new Bug("AlreadyTornDown", {}, "Test tear down already complete");
+        }
+    },
+
+    /**
+     *
+     */
+    completeTest: function() {
+        if (!this.completedTest) {
+            this.completedTest = true;
             if (!this.errorOccurred) {
                 this.dispatchTestCompleteEvent();
             }
+        } else {
+            throw new Bug("AlreadyCompletedTest", {}, "Test already complete");
         }
     },
 
@@ -223,25 +275,61 @@ var Test = Class.extend(EventDispatcher, {
         }
     },
 
+    /**
+     *
+     */
+    setup: function() {
+        if (TypeUtil.isFunction(this.testObject.setup)) {
+            this.testObject.setup(this);
+            if (!this.isAsync() || this.errorOccurred) {
+                this.completeSetup();
+            }
+        } else {
+            this.completeSetup();
+        }
+    },
+
+    /**
+     *
+     */
+    tearDown: function() {
+        if (TypeUtil.isFunction(this.testObject.tearDown)) {
+            this.testObject.tearDown();
+            if (!this.isAsync() || this.errorOccurred) {
+                this.completeTearDown();
+            }
+        } else {
+            this.completeTearDown();
+        }
+    },
+
+    /**
+     *
+     */
+    test: function() {
+        if (TypeUtil.isFunction(this.testObject.test)) {
+            this.testObject.test(this);
+            if (!this.isAsync() || this.errorOccurred) {
+                this.completeTest();
+            }
+        } else {
+            throw new Bug("IllegalState", {}, "Missing test function for test '" + this.name + "'");
+        }
+    },
+
 
     //-------------------------------------------------------------------------------
-    // PrivateClass Methods
+    // Private Methods
     //-------------------------------------------------------------------------------
 
     /**
+     * This test uses the exact comparison operator (===) to test for equality.
      * @private
+     * @param {*} value1
+     * @param {*} value2
      */
-    runTest: function() {
-        try {
-            this.setup();
-            this.test();
-        } catch(error) {
-            this.error(error);
-        } finally {
-            if (!this.testObject.async || this.errorOccurred) {
-                this.complete();
-            }
-        }
+    areEqual: function(value1, value2) {
+        return Obj.equals(value1, value2);
     },
 
     /**
@@ -256,10 +344,16 @@ var Test = Class.extend(EventDispatcher, {
 
     /**
      * @private
-     * @param {Error} error
      */
-    dispatchTestErrorEvent: function(error) {
-        this.dispatchEvent(new Event(Test.EventType.TEST_ERROR, error));
+    dispatchSetupCompleteEvent: function() {
+        this.dispatchEvent(new Event(Test.EventType.SETUP_COMPLETE));
+    },
+
+    /**
+     * @private
+     */
+    dispatchTearDownCompleteEvent: function() {
+        this.dispatchEvent(new Event(Test.EventType.TEAR_DOWN_COMPLETE));
     },
 
     /**
@@ -270,54 +364,29 @@ var Test = Class.extend(EventDispatcher, {
     },
 
     /**
-     * This test uses the exact comparison operator (===) to test for equality.
      * @private
-     * @param {*} value1
-     * @param {*} value2
+     * @param {Error} error
      */
-    areEqual: function(value1, value2) {
-        return Obj.equals(value1, value2);
-    },
-
-    /**
-     * @private
-     */
-    setup: function() {
-        if (TypeUtil.isFunction(this.testObject.setup)) {
-            this.testObject.setup(this);
-        }
-    },
-
-    /**
-     * @private
-     */
-    test: function() {
-        if (TypeUtil.isFunction(this.testObject.test)) {
-            this.testObject.test(this);
-        } else {
-            throw new Error("Missing test function for test '" + this.name + "'");
-        }
-    },
-
-    /**
-     * @private
-     */
-    tearDown: function() {
-        if (TypeUtil.isFunction(this.testObject.tearDown)) {
-            this.testObject.tearDown();
-        }
+    dispatchTestErrorEvent: function(error) {
+        this.dispatchEvent(new Event(Test.EventType.TEST_ERROR, error));
     }
 });
 
 
 //-------------------------------------------------------------------------------
-// Static Event Types
+// Static Properties
 //-------------------------------------------------------------------------------
 
+/**
+ * @static
+ * @enum {string}
+ */
 Test.EventType = {
-    ASSERTION_RESULT: 'assertion_result',
-    TEST_ERROR: 'test_error',
-    TEST_COMPLETE: 'test_complete'
+    ASSERTION_RESULT: "Test:AssertionResult",
+    SETUP_COMPLETE: "Test:SetupComplete",
+    TEAR_DOWN_COMPLETE: "Test:TearDownComplete",
+    TEST_COMPLETE: "Test:TestComplete",
+    TEST_ERROR: "Test:TestError"
 };
 
 

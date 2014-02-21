@@ -70,9 +70,13 @@ BugUnitCli.installPath = process.cwd() + "/.bugunit";
  * 3) Installs bugunit in to the target module after the target module has been specified
  * 4) Calls node ./.bugunit/node_modules/[targetModule]/node_modules/bugunit/scripts/bugunit-run.js to start the tests
  * @param {string} targetModulePath
+ * @param {{
+ *      checkCoverage: boolean
+ * }} options
  * @param {function(Error)} callback
  */
-BugUnitCli.start = function(targetModulePath, callback) {
+BugUnitCli.start = function(targetModulePath, options, callback) {
+    var checkCoverage       = options.checkCoverage || false;
     var targetModuleInstalledPath = null;
     $series([
         $task(function(flow) {
@@ -106,7 +110,20 @@ BugUnitCli.start = function(targetModulePath, callback) {
             });
         }),
         $task(function(flow) {
-            var childProcess = child_process.spawn('node', [targetModuleInstalledPath + '/scripts/bugunit-run.js'], {cwd: targetModuleInstalledPath, env: process.env});
+            var childProcess = null;
+            if (checkCoverage) {
+                //TODO BRN: This binary coverage is a bit hacky. Doesn't protect from version change and not very easy to extract results.
+                var args = [];
+                args.push("cover");
+                args.push("--root");
+                args.push(targetModuleInstalledPath + "/lib");
+                args.push("--dir");
+                args.push(BugUnitCli.installPath)
+                args.push(targetModuleInstalledPath + "/scripts/bugunit-run.js");
+                childProcess = child_process.spawn('istanbul', args, {cwd: targetModuleInstalledPath, env: process.env});
+            } else {
+                childProcess = child_process.spawn('node', [targetModuleInstalledPath + "/scripts/bugunit-run.js"], {cwd: targetModuleInstalledPath, env: process.env});
+            }
             childProcess.stdout.setEncoding('utf8');
             childProcess.stdout.on('data', function (data) {
                 console.log(data);
@@ -252,7 +269,7 @@ BugUnitCli.getModuleData = function(modulePathString, callback) {
  * @param {function(Error, {
  *     name: string,
  *     version: string
- * })} callback
+ * }=)} callback
  */
 BugUnitCli.getModuleDataFromFolder = function(modulePath, callback) {
     var packageJsonPath = BugFs.joinPaths(modulePath, "package.json");

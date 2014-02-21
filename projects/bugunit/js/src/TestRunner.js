@@ -112,9 +112,7 @@ var TestRunner = Class.extend(Obj, {
     runTest: function(callback) {
         var _this = this;
         this.callback = callback;
-        this.test.addEventListener(Test.EventType.ASSERTION_RESULT, this.hearAssertionResult, this);
-        this.test.addEventListener(Test.EventType.TEST_ERROR, this.hearTestError, this);
-        this.test.addEventListener(Test.EventType.TEST_COMPLETE, this.hearTestComplete, this);
+        this.addTestListeners();
         if (this.logResults) {
             console.log("Running test [" + this.test.getName() + "]");
         }
@@ -124,19 +122,33 @@ var TestRunner = Class.extend(Obj, {
         });
         d.add(this.test);
         d.run(function() {
-            _this.test.runTest();
+            _this.setupTest();
         });
     },
 
 
     //-------------------------------------------------------------------------------
-    // Private Instance Methods
+    // Private Methods
     //-------------------------------------------------------------------------------
 
     /**
      * @private
      */
+    addTestListeners: function() {
+        this.test.addEventListener(Test.EventType.ASSERTION_RESULT, this.hearAssertionResult, this);
+        this.test.addEventListener(Test.EventType.SETUP_COMPLETE, this.hearSetupComplete, this);
+        this.test.addEventListener(Test.EventType.TEAR_DOWN_COMPLETE, this.hearTearDownComplete, this);
+        this.test.addEventListener(Test.EventType.TEST_ERROR, this.hearTestError, this);
+        this.test.addEventListener(Test.EventType.TEST_COMPLETE, this.hearTestComplete, this);
+    },
+
+    /**
+     * @private
+     */
     complete: function() {
+        if (this.logResults) {
+            console.log("Completed test [" + this.test.getName() + "]");
+        }
         this.completed = true;
         this.callback(null, this.testResult);
     },
@@ -147,17 +159,52 @@ var TestRunner = Class.extend(Obj, {
      */
     processError: function(error) {
         this.testResult.setError(error);
-        this.removeListeners();
+        this.removeTestListeners();
         this.complete();
     },
 
     /**
      * @private
      */
-    removeListeners: function() {
+    removeTestListeners: function() {
         this.test.removeEventListener(Test.EventType.ASSERTION_RESULT, this.hearAssertionResult, this);
+        this.test.removeEventListener(Test.EventType.SETUP_COMPLETE, this.hearSetupComplete, this);
+        this.test.removeEventListener(Test.EventType.TEAR_DOWN_COMPLETE, this.hearTearDownComplete, this);
         this.test.removeEventListener(Test.EventType.TEST_ERROR, this.hearTestError, this);
         this.test.removeEventListener(Test.EventType.TEST_COMPLETE, this.hearTestComplete, this);
+    },
+
+    /**
+     * @private
+     */
+    setupTest: function() {
+        try {
+            this.test.setup();
+        } catch(error) {
+            this.test.error(error);
+        }
+    },
+
+    /**
+     * @private
+     */
+    testTest: function() {
+        try {
+            this.test.test();
+        } catch(error) {
+            this.test.error(error);
+        }
+    },
+
+    /**
+     * @private
+     */
+    tearDownTest: function() {
+        try {
+            this.test.tearDown();
+        } catch(error) {
+            this.test.error(error);
+        }
     },
 
 
@@ -181,12 +228,25 @@ var TestRunner = Class.extend(Obj, {
      * @private
      * @param {Event} event
      */
-    hearTestComplete: function(event) {
-        if (this.logResults) {
-            console.log("Completed test [" + this.test.getName() + "]");
-        }
-        this.removeListeners();
+    hearSetupComplete: function(event) {
+        this.testTest();
+    },
+
+    /**
+     * @private
+     * @param {Event} event
+     */
+    hearTearDownComplete: function(event) {
+        this.removeTestListeners();
         this.complete();
+    },
+
+    /**
+     * @private
+     * @param {Event} event
+     */
+    hearTestComplete: function(event) {
+        this.tearDownTest();
     },
 
     /**

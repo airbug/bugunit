@@ -34,7 +34,7 @@ var nodejs = enableModule("nodejs");
 buildProperties({
     packageJson: {
         name: "bugunit",
-        version: "0.0.12",
+        version: "0.0.13",
         main: "./lib/bug-unit-cli-module.js",
         private: true,
         bin: "bin/bugunit",
@@ -114,11 +114,6 @@ buildTarget("local").buildFlow(
                 packageVersion: buildProject.getProperty("packageJson.version")
             }
         }),
-        targetTask("s3EnsureBucket", {
-            properties: {
-                bucket: buildProject.getProperty("local-bucket")
-            }
-        }),
         targetTask("s3PutFile", {
             init: function(task, buildProject, properties) {
                 var packedNodePackage = nodejs.findPackedNodePackage(buildProject.getProperty("packageJson.name"),
@@ -126,12 +121,13 @@ buildTarget("local").buildFlow(
                 task.updateProperties({
                     file: packedNodePackage.getFilePath(),
                     options: {
-                        acl: 'public-read'
+                        acl: "public-read",
+                        encrypt: true
                     }
                 });
             },
             properties: {
-                bucket: buildProject.getProperty("local-bucket")
+                bucket: "{{local-bucket}}"
             }
         })
     ])
@@ -171,11 +167,6 @@ buildTarget("prod").buildFlow(
                 packageVersion: buildProject.getProperty("packageJson.version")
             }
         }),
-        targetTask("s3EnsureBucket", {
-            properties: {
-                bucket: "airbug"
-            }
-        }),
         targetTask("s3PutFile", {
             init: function(task, buildProject, properties) {
                 var packedNodePackage = nodejs.findPackedNodePackage(buildProject.getProperty("packageJson.name"),
@@ -183,12 +174,13 @@ buildTarget("prod").buildFlow(
                 task.updateProperties({
                     file: packedNodePackage.getFilePath(),
                     options: {
-                        acl: 'public-read'
+                        acl: "public-read",
+                        encrypt: true
                     }
                 });
             },
             properties: {
-                bucket: "airbug"
+                bucket: "{{prod-deploy-bucket}}"
             }
         })
     ])
