@@ -4,6 +4,7 @@
 
 //@Package('bugunit')
 
+//@Require('bugtrace.BugTrace')
 //@Require('bugunit.BugUnit')
 
 
@@ -11,15 +12,16 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context(module);
-var path = require('path');
+var bugpack     = require('bugpack').context(module);
+var path        = require('path');
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
-var BugUnit = bugpack.require('bugunit.BugUnit');
+var BugTrace    = bugpack.require('bugtrace.BugTrace');
+var BugUnit     = bugpack.require('bugunit.BugUnit');
 
 
 //-------------------------------------------------------------------------------
@@ -89,6 +91,10 @@ process.on('exit', function() {
             bugUnit.getTestRunnerSet().forEach(function(testRunner) {
                 if (!testRunner.isCompleted()) {
                     console.log("Test '" + testRunner.getTest().getName() + "' did not complete");
+                    var stack = BugTrace.getNamedStack(testRunner.getTest().getName());
+                    if (stack) {
+                        console.log("Last stack: ", stack);
+                    }
                 }
             });
             process.exit(1);

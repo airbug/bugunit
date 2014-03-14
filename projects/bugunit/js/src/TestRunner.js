@@ -11,6 +11,7 @@
 //@require('Obj')
 //@Require('Test')
 //@Require('TestResult')
+//@Require('bugtrace.BugTrace')
 
 
 //-------------------------------------------------------------------------------
@@ -30,6 +31,14 @@ var List        = bugpack.require('List');
 var Obj         = bugpack.require('Obj');
 var Test        = bugpack.require('bugunit.Test');
 var TestResult  = bugpack.require('bugunit.TestResult');
+var BugTrace    = bugpack.require('bugtrace.BugTrace');
+
+
+//-------------------------------------------------------------------------------
+// Simplify References
+//-------------------------------------------------------------------------------
+
+var $name       = BugTrace.$name;
 
 
 //-------------------------------------------------------------------------------
@@ -179,6 +188,7 @@ var TestRunner = Class.extend(Obj, {
      */
     setupTest: function() {
         try {
+            $name(this.test.getName());
             this.test.setup();
         } catch(error) {
             this.test.error(error);
@@ -190,6 +200,7 @@ var TestRunner = Class.extend(Obj, {
      */
     testTest: function() {
         try {
+            $name(this.test.getName());
             this.test.test();
         } catch(error) {
             this.test.error(error);
