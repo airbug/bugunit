@@ -2,29 +2,29 @@
 // Requires
 //-------------------------------------------------------------------------------
 
-var buildbug = require("buildbug");
+var buildbug            = require("buildbug");
 
 
 //-------------------------------------------------------------------------------
 // Simplify References
 //-------------------------------------------------------------------------------
 
-var buildProject = buildbug.buildProject;
-var buildProperties = buildbug.buildProperties;
-var buildTarget = buildbug.buildTarget;
-var enableModule = buildbug.enableModule;
-var series = buildbug.series;
-var targetTask = buildbug.targetTask;
+var buildProject        = buildbug.buildProject;
+var buildProperties     = buildbug.buildProperties;
+var buildTarget         = buildbug.buildTarget;
+var enableModule        = buildbug.enableModule;
+var series              = buildbug.series;
+var targetTask          = buildbug.targetTask;
 
 
 //-------------------------------------------------------------------------------
 // Enable Modules
 //-------------------------------------------------------------------------------
 
-var aws = enableModule("aws");
-var bugpack = enableModule("bugpack");
-var core = enableModule("core");
-var nodejs = enableModule("nodejs");
+var aws                 = enableModule("aws");
+var bugpack             = enableModule("bugpack");
+var core                = enableModule("core");
+var nodejs              = enableModule("nodejs");
 
 
 //-------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ var nodejs = enableModule("nodejs");
 buildProperties({
     packageJson: {
         name: "bugunit",
-        version: "0.0.13",
+        version: "0.0.14",
         main: "./lib/bug-unit-cli-module.js",
         private: true,
         bin: "bin/bugunit",

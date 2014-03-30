@@ -7,6 +7,7 @@
 //@Export('BugUnitCli')
 
 //@Require('Bug')
+//@Require('StringUtil')
 //@Require('bugflow.BugFlow')
 //@Require('bugfs.BugFs')
 
@@ -28,6 +29,7 @@ var zlib            = require('zlib');
 //-------------------------------------------------------------------------------
 
 var Bug             = bugpack.require('Bug');
+var StringUtil      = bugpack.require('StringUtil');
 var BugFlow         = bugpack.require('bugflow.BugFlow');
 var BugFs           = bugpack.require('bugfs.BugFs');
 
@@ -174,11 +176,11 @@ BugUnitCli.installNodeModule = function(modulePath, installPath, callback) {
             var child = child_process.spawn(npmBin, ['install', modulePath], {cwd: installPath, env: process.env});
             child.stdout.setEncoding('utf8');
             child.stdout.on('data', function (data) {
-                console.log(data);
+                console.log(StringUtil.trim(data));
             });
             child.stderr.setEncoding('utf8');
             child.stderr.on('data', function (data) {
-                console.log(data);
+                console.log(StringUtil.trim(data));
             });
             child.on('close', function (code) {
                 if (code !== 0) {
