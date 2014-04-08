@@ -2,9 +2,7 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugdouble')
-
-//@Export('FunctionSpy')
+//@Export('bugdouble.FunctionSpy')
 
 //@Require('ArgUtil')
 //@Require('Class')
@@ -37,12 +35,20 @@ var FunctionCall    = bugpack.require('bugdouble.FunctionCall');
 // Declare Class
 //-------------------------------------------------------------------------------
 
+/**
+ * @class
+ * @extends {Obj}
+ */
 var FunctionSpy = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
+    /**
+     * @constructs
+     * @param {function(...):*} targetFunction
+     */
     _constructor: function(targetFunction) {
 
         this._super();
@@ -56,13 +62,13 @@ var FunctionSpy = Class.extend(Obj, {
          * @private
          * @type {List.<FunctionCall>}
          */
-        this.functionCallList = new List();
+        this.functionCallList   = new List();
 
         /**
          * @private
-         * @type {function()}
+         * @type {function(...):*}
          */
-        this.targetFunction = targetFunction;
+        this.targetFunction     = targetFunction;
     },
 
 
@@ -71,7 +77,7 @@ var FunctionSpy = Class.extend(Obj, {
     //-------------------------------------------------------------------------------
 
     /**
-     * @return {function()}
+     * @return {function(...):*}
      */
     getTargetFunction: function() {
         return this.targetFunction;
@@ -90,7 +96,7 @@ var FunctionSpy = Class.extend(Obj, {
     },
 
     /**
-     * @return {function() {}}
+     * @return {function(...):*}
      */
     spy: function() {
         var _this = this;

@@ -2,9 +2,7 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugdouble')
-
-//@Export('FunctionCall')
+//@Export('bugdouble.FunctionCall')
 
 //@Require('Class')
 //@Require('List')
@@ -15,28 +13,36 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context();
+var bugpack     = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Class   = bugpack.require('Class');
-var List    = bugpack.require('List');
-var Obj     = bugpack.require('Obj');
+var Class       = bugpack.require('Class');
+var List        = bugpack.require('List');
+var Obj         = bugpack.require('Obj');
 
 
 //-------------------------------------------------------------------------------
 // Declare Class
 //-------------------------------------------------------------------------------
 
+/**
+ * @class
+ * @extends {Obj}
+ */
 var FunctionCall = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
+    /**
+     * @constructs
+     * @param {Array.<*>} arguments
+     */
     _constructor: function(arguments) {
 
         this._super();

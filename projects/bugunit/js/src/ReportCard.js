@@ -2,9 +2,7 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugunit')
-
-//@Export('ReportCard')
+//@Export('bugunit.ReportCard')
 
 //@Require('Class')
 //@Require('List')
@@ -15,28 +13,35 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context();
+var bugpack     = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Class = bugpack.require('Class');
-var List = bugpack.require('List');
-var Obj = bugpack.require('Obj');
+var Class       = bugpack.require('Class');
+var List        = bugpack.require('List');
+var Obj         = bugpack.require('Obj');
 
 
 //-------------------------------------------------------------------------------
 // Declare Class
 //-------------------------------------------------------------------------------
 
+/**
+ * @class
+ * @extends {Obj}
+ */
 var ReportCard = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
+    /**
+     * @constructs
+     */
     _constructor: function() {
 
         this._super();
@@ -46,9 +51,17 @@ var ReportCard = Class.extend(Obj, {
         // Private Properties
         //-------------------------------------------------------------------------------
 
-        this.testResultList = new List();
+        /**
+         * @private
+         * @type {List.<TestResult>}
+         */
+        this.testResultList         = new List();
 
-        this.failedTestResultList = new List();
+        /**
+         * @private
+         * @type {List.<TestResult>}
+         */
+        this.failedTestResultList   = new List();
     },
 
 
@@ -56,19 +69,28 @@ var ReportCard = Class.extend(Obj, {
     // Getters and Setters
     //-------------------------------------------------------------------------------
 
+    /**
+     * @return {List.<TestResult>}
+     */
     getTestResultList: function() {
         return this.testResultList;
     },
 
+    /**
+     * @return {List.<TestResult>}
+     */
     getFailedTestResultList: function() {
         return this.failedTestResultList;
     },
 
 
     //-------------------------------------------------------------------------------
-    // Class Methods
+    // Public Methods
     //-------------------------------------------------------------------------------
 
+    /**
+     * @param {TestResult} testResult
+     */
     addTestResult: function(testResult) {
         this.testResultList.add(testResult);
         if (testResult.didTestFail()) {
@@ -76,10 +98,16 @@ var ReportCard = Class.extend(Obj, {
         }
     },
 
+    /**
+     * @return {number}
+     */
     numberFailedTests: function() {
         return this.failedTestResultList.getCount();
     },
 
+    /**
+     * @return {number}
+     */
     numberPassedTests: function() {
         return (this.testResultList.getCount() - this.failedTestResultList.getCount());
     }

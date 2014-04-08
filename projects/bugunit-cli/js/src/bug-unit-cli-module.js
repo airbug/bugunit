@@ -1,22 +1,11 @@
 //-------------------------------------------------------------------------------
-// Annotations
+// Script
 //-------------------------------------------------------------------------------
 
-//@Require('bugunit.BugUnitCli')
-
-
-//-------------------------------------------------------------------------------
-// Common Modules
-//-------------------------------------------------------------------------------
-
-var bugpack = require('bugpack').context(module);
-
-
-//-------------------------------------------------------------------------------
-// BugPack
-//-------------------------------------------------------------------------------
-
-var BugUnitCli = bugpack.require('bugunit.BugUnitCli');
+var bugpackApi              = require("bugpack");
+var bugpack                 = bugpackApi.loadContextSync(module);
+bugpack.loadExportSync("bugunit.BugUnitCli");
+var BugUnitCli              = bugpack.require("bugunit.BugUnitCli");
 
 
 //-------------------------------------------------------------------------------

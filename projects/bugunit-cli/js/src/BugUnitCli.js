@@ -2,9 +2,7 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugunit')
-
-//@Export('BugUnitCli')
+//@Export('bugunit.BugUnitCli')
 
 //@Require('Bug')
 //@Require('StringUtil')
@@ -16,7 +14,7 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack         = require('bugpack').context(module);
+var bugpack         = require('bugpack').context();
 var child_process   = require('child_process');
 var fs              = require('fs');
 var path            = require('path');
@@ -51,7 +49,7 @@ var BugUnitCli = {};
 
 
 //-------------------------------------------------------------------------------
-// Private Static Variables
+// Private Static Properties
 //-------------------------------------------------------------------------------
 
 /**
@@ -97,21 +95,6 @@ BugUnitCli.start = function(targetModulePath, options, callback) {
             });
         }),
         $task(function(flow) {
-            var bugunitRunScriptPath = path.join(targetModuleInstalledPath, "scripts/bugunit-run.js");
-            BugFs.exists(bugunitRunScriptPath, function(throwable, exists) {
-                if (!throwable) {
-                    if (exists) {
-                        flow.complete();
-                    } else {
-                        flow.error(new Error("Target test module must include bugunit scripts and classes in order to " +
-                            "run unit tests. Could not find bugunit-run script at '" + bugunitRunScriptPath + "'"));
-                    }
-                } else {
-                    flow.error(throwable);
-                }
-            });
-        }),
-        $task(function(flow) {
             var childProcess = null;
             if (checkCoverage) {
                 //TODO BRN: This binary coverage is a bit hacky. Doesn't protect from version change and not very easy to extract results.
@@ -120,7 +103,7 @@ BugUnitCli.start = function(targetModulePath, options, callback) {
                 args.push("--root");
                 args.push(targetModuleInstalledPath + "/lib");
                 args.push("--dir");
-                args.push(BugUnitCli.installPath)
+                args.push(BugUnitCli.installPath);
                 args.push(targetModuleInstalledPath + "/scripts/bugunit-run.js");
                 childProcess = child_process.spawn('istanbul', args, {cwd: targetModuleInstalledPath, env: process.env});
             } else {
@@ -136,7 +119,7 @@ BugUnitCli.start = function(targetModulePath, options, callback) {
             });
             childProcess.on('close', function (code) {
                 if (code !== 0) {
-                    flow.error(new Bug("BugUnit completed with an error"));
+                    flow.error(new Bug("BugUnitError", {}, "BugUnit completed with an error"));
                 } else {
                     flow.complete();
                 }
@@ -166,7 +149,7 @@ BugUnitCli.createInstallDir = function(installPath, callback) {
  * @private
  * @param {string} modulePath
  * @param {string} installPath
- * @param {function(Throwable, Object)=} callback
+ * @param {function(Throwable, Object=)=} callback
  */
 BugUnitCli.installNodeModule = function(modulePath, installPath, callback) {
     BugUnitCli.getModuleData(modulePath, function(throwable, moduleData) {

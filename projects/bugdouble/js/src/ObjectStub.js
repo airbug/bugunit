@@ -2,9 +2,7 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugdouble')
-
-//@Export('ObjectStub')
+//@Export('bugdouble.ObjectStub')
 
 //@Require('Class')
 //@Require('Map')
@@ -17,7 +15,7 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context();
+var bugpack         = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
@@ -35,12 +33,21 @@ var FunctionStub    = bugpack.require('bugdouble.FunctionStub');
 // Declare Class
 //-------------------------------------------------------------------------------
 
+/**
+ * @class
+ * @extends {Obj}
+ */
 var ObjectStub = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
+    /**
+     * @constructs
+     * @param {Object} targetObject
+     * @param {Object} stubDeclaration
+     */
     _constructor: function(targetObject, stubDeclaration) {
 
         this._super();
@@ -54,19 +61,19 @@ var ObjectStub = Class.extend(Obj, {
          * @private
          * @type {Map.<string, FunctionStub>}
          */
-        this.functionStubs = new Map();
+        this.functionStubs      = new Map();
 
         /**
          * @private
          * @type {Object}
          */
-        this.stubDeclaration = stubDeclaration;
+        this.stubDeclaration    = stubDeclaration;
 
         /**
          * @private
          * @type {Object}
          */
-        this.targetObject = targetObject;
+        this.targetObject       = targetObject;
     },
 
 

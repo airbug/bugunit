@@ -2,9 +2,7 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugunit-annotate')
-
-//@Export('TestAnnotation')
+//@Export('bugunit.TestAnnotation')
 
 //@Require('Class')
 //@Require('bugmeta.Annotation')
@@ -29,12 +27,19 @@ var Annotation      = bugpack.require('bugmeta.Annotation');
 // Declare Class
 //-------------------------------------------------------------------------------
 
+/**
+ * @class
+ * @extends {Annotation}
+ */
 var TestAnnotation = Class.extend(Annotation, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
+    /**
+     * @constructs
+     */
     _constructor: function() {
 
         this._super("Test");
@@ -57,16 +62,15 @@ var TestAnnotation = Class.extend(Annotation, {
     //-------------------------------------------------------------------------------
 
     /**
-     *
      * @return {string}
      */
-    getName: function() {
+    getTestName: function() {
         return this.testName;
     },
 
 
     //-------------------------------------------------------------------------------
-    // Class Methods
+    // Public Methods
     //-------------------------------------------------------------------------------
 
     /**
@@ -95,4 +99,4 @@ TestAnnotation.test = function() {
 // Exports
 //-------------------------------------------------------------------------------
 
-bugpack.export("bugunit-annotate.TestAnnotation", TestAnnotation);
+bugpack.export("bugunit.TestAnnotation", TestAnnotation);

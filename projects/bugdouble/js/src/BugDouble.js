@@ -2,10 +2,10 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugdouble')
+//@Export('bugdouble.BugDouble')
 
-//@Export('BugDouble')
-
+//@Require('Class')
+//@Require('Obj')
 //@Require('bugdouble.FunctionSpy')
 //@Require('bugdouble.FunctionStub')
 //@Require('bugdouble.ObjectSpy')
@@ -16,13 +16,15 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context();
+var bugpack         = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
+var Class           = bugpack.require('Class');
+var Obj             = bugpack.require('Obj');
 var FunctionSpy     = bugpack.require('bugdouble.FunctionSpy');
 var FunctionStub    = bugpack.require('bugdouble.FunctionStub');
 var ObjectSpy       = bugpack.require('bugdouble.ObjectSpy');
@@ -33,7 +35,11 @@ var ObjectStub      = bugpack.require('bugdouble.ObjectStub');
 // Declare Class
 //-------------------------------------------------------------------------------
 
-var BugDouble = {};
+/**
+ * @class
+ * @extends {Obj}
+ */
+var BugDouble = Class.extend(Obj, {});
 
 
 //-------------------------------------------------------------------------------
@@ -42,8 +48,8 @@ var BugDouble = {};
 
 /**
  * @static
- * @param {function()} targetFunction
- * @return {function()}
+ * @param {function(...):*} targetFunction
+ * @return {function(...):*}
  */
 BugDouble.spyOnFunction = function(targetFunction) {
     return (new FunctionSpy(targetFunction)).spy();
@@ -62,9 +68,9 @@ BugDouble.spyOnObject = function(targetObject) {
 
 /**
  * @static
- * @param {function()} targetFunction
- * @param {function()} stubFunction
- * @return {function()}
+ * @param {function(...):*} targetFunction
+ * @param {function(...):*} stubFunction
+ * @return {function(...):*}
  */
 BugDouble.stubFunction = function(targetFunction, stubFunction) {
     return (new FunctionStub(targetFunction, stubFunction)).stub();

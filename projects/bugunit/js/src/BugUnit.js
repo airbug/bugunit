@@ -2,14 +2,13 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugunit')
-
-//@Export('BugUnit')
+//@Export('bugunit.BugUnit')
 
 //@Require('Class')
 //@Require('Obj')
 //@Require('Set')
 //@Require('bugflow.BugFlow')
+//@Require('bugfs.BugFs')
 //@Require('bugunit.ReportCard')
 //@Require('bugunit.TestFileLoader')
 //@Require('bugunit.TestRunner')
@@ -20,40 +19,50 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack         = require('bugpack').context();
+var bugpack                 = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Class           = bugpack.require('Class');
-var Obj             = bugpack.require('Obj');
-var Set             = bugpack.require('Set');
-var BugFlow         = bugpack.require('bugflow.BugFlow');
-var ReportCard      = bugpack.require('bugunit.ReportCard');
-var TestFileLoader  = bugpack.require('bugunit.TestFileLoader');
-var TestRunner      = bugpack.require('bugunit.TestRunner');
-var TestScan        = bugpack.require('bugunit.TestScan');
+var Class                   = bugpack.require('Class');
+var Obj                     = bugpack.require('Obj');
+var Set                     = bugpack.require('Set');
+var BugFlow                 = bugpack.require('bugflow.BugFlow');
+var BugFs                   = bugpack.require('bugfs.BugFs');
+var ReportCard              = bugpack.require('bugunit.ReportCard');
+var TestFileLoader          = bugpack.require('bugunit.TestFileLoader');
+var TestRunner              = bugpack.require('bugunit.TestRunner');
+var TestScan                = bugpack.require('bugunit.TestScan');
 
 
 //-------------------------------------------------------------------------------
 // Simplify References
 //-------------------------------------------------------------------------------
 
-var $forEachParallel = BugFlow.$forEachParallel;
+var $forEachParallel        = BugFlow.$forEachParallel;
+var $series                 = BugFlow.$series;
+var $task                   = BugFlow.$task;
 
 
 //-------------------------------------------------------------------------------
 // Declare Class
 //-------------------------------------------------------------------------------
 
+/**
+ * @class
+ * @extends {Obj}
+ */
 var BugUnit = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
+    /**
+     * @constructs
+     */
     _constructor: function() {
 
         this._super();
@@ -103,37 +112,9 @@ var BugUnit = Class.extend(Obj, {
 
 
     //-------------------------------------------------------------------------------
-    // Public Instance Methods
+    // Public Methods
     //-------------------------------------------------------------------------------
 
-    /**
-     * @param {function(Throwable, ReportCard=)} callback
-     */
-    start: function(callback) {
-        this.loadAndScanTestFilesFromNodeModule(module);
-        try {
-            this.runTests(true, function(throwable, reportCard) {
-                if (!throwable) {
-                    callback(null, reportCard);
-                } else {
-                    callback(throwable);
-                }
-            });
-        } catch(throwable) {
-            callback(throwable);
-        }
-    },
-
-    /**
-     * @param {string} modulePath
-     */
-    loadAndScanTestFilesFromNodeModule: function(modulePath) {
-        console.log("Running bug unit tests on module '" + modulePath + "'");
-        var testFileLoader = new TestFileLoader(modulePath);
-        testFileLoader.load();
-        var testScan = new TestScan(modulePath, this);
-        testScan.scan();
-    },
 
     /**
      * @param {Test} test
@@ -145,6 +126,68 @@ var BugUnit = Class.extend(Obj, {
     },
 
     /**
+     * @param {(string | Path)} testPath
+     * @param {function(Throwable, ReportCard=)} callback
+     */
+    start: function(testPath, callback) {
+        testPath        = BugFs.path(testPath);
+        var _this       = this;
+        var reportCard  = null;
+        $series([
+            $task(function(flow) {
+                _this.loadAndScanTestFilesFromTestPath(testPath, function(throwable) {
+                    flow.complete(throwable);
+                });
+            }),
+            $task(function(flow) {
+                _this.runTests(true, function(throwable, returnedReportCard) {
+                    if (!throwable) {
+                        reportCard = returnedReportCard;
+                    }
+                    flow.complete(throwable);
+                });
+
+            })
+        ]).execute(function(throwable) {
+            if (!throwable) {
+                callback(null, reportCard);
+            } else {
+                callback(throwable);
+            }
+        });
+    },
+
+
+    //-------------------------------------------------------------------------------
+    // Private Methods
+    //-------------------------------------------------------------------------------
+
+    /**
+     * @private
+     * @param {Path} testPath
+     * @param {function(Error=)} callback
+     */
+    loadAndScanTestFilesFromTestPath: function(testPath, callback) {
+        console.log("Running bug unit tests on path '" + testPath.getAbsolutePath() + "'");
+        var _this           = this;
+        var testFileLoader  = new TestFileLoader(testPath);
+        testFileLoader.load(function(throwable) {
+            if (!throwable) {
+                var testScan    = new TestScan(testPath, _this);
+                try {
+                    testScan.scan();
+                } catch(caughtThrowable) {
+                    throwable = caughtThrowable;
+                }
+                callback(throwable);
+            } else {
+                callback(throwable);
+            }
+        });
+    },
+
+    /**
+     * @private
      * @param {boolean} logResults
      * @param {function(Throwable, ReportCard=)} callback
      */

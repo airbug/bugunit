@@ -2,9 +2,7 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugunit')
-
-//@Export('Test')
+//@Export('bugunit.Test')
 
 //@Require('Bug')
 //@Require('Class')
@@ -41,12 +39,26 @@ var AssertionResult     = bugpack.require('bugunit.AssertionResult');
 // Declare Class
 //-------------------------------------------------------------------------------
 
+/**
+ * @class
+ * @extends {EventDispatcher}
+ */
 var Test = Class.extend(EventDispatcher, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
+    /**
+     * @constructs
+     * @param {string} name
+     * @param {{
+     *      async: boolean,
+     *      setup: function(Object),
+     *      test: function(Object),
+     *      tearDown: function(Object)
+     * }} testObject
+     */
     _constructor: function(name, testObject) {
 
         this._super();

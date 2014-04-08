@@ -2,9 +2,7 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugunit');
-
-//@Export('AssertionResult')
+//@Export('bugunit.AssertionResult')
 
 //@Require('Class')
 //@Require('Obj')
@@ -14,39 +12,56 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context();
+var bugpack     = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Class = bugpack.require('Class');
-var Obj = bugpack.require('Obj');
+var Class       = bugpack.require('Class');
+var Obj         = bugpack.require('Obj');
 
 
 //-------------------------------------------------------------------------------
-// Class
+// Declare Class
 //-------------------------------------------------------------------------------
 
+/**
+ * @class
+ * @extends {Obj}
+ */
 var AssertionResult = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
+    /**
+     * @constructs
+     * @param {boolean} passed
+     * @param {string} message
+     */
     _constructor: function(passed, message) {
 
         this._super();
 
 
         //-------------------------------------------------------------------------------
-        // Properties
+        // Private Properties
         //-------------------------------------------------------------------------------
 
-        this.message = message;
+        /**
+         * @private
+         * @type {string}
+         */
+        this.message    = message;
 
-        this.passed = passed;
+        /**
+         * @private
+         * @type {boolean}
+         */
+        this.passed     = passed;
     },
 
 
@@ -54,19 +69,35 @@ var AssertionResult = Class.extend(Obj, {
     // Getters and Setters
     //-------------------------------------------------------------------------------
 
+    /**
+     * @return {string}
+     */
     getMessage: function() {
         return this.message;
     },
 
+    /**
+     * @return {boolean}
+     */
+    getPassed: function() {
+        return this.passed;
+    },
+
 
     //-------------------------------------------------------------------------------
-    // Class Methods
+    // Public Methods
     //-------------------------------------------------------------------------------
 
+    /**
+     * @return {boolean}
+     */
     didAssertionPass: function() {
         return this.passed;
     },
 
+    /**
+     * @return {boolean}
+     */
     didAssertionFail: function() {
         return !this.passed;
     }

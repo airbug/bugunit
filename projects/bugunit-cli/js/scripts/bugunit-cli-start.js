@@ -1,41 +1,43 @@
 //-------------------------------------------------------------------------------
-// Annotations
-//-------------------------------------------------------------------------------
-
-//@Require('bugunit.BugUnitCli')
-
-
-//-------------------------------------------------------------------------------
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context(module);
-var path = require('path');
+var bugpackApi  = require("bugpack");
+var path        = require('path');
 
 
 //-------------------------------------------------------------------------------
-// BugPack
+// Script
 //-------------------------------------------------------------------------------
 
-var BugUnitCli =    bugpack.require('bugunit.BugUnitCli');
+bugpackApi.loadContext(module, function(error, bugpack) {
+    if (!error) {
+        bugpack.loadExport("buganno.AnnotationParserProcess", function(error) {
+            if (!error) {
+                var BugUnitCli  = bugpack.require('bugunit.BugUnitCli');
+                var targetModulePath = process.argv[2];
+                if (!targetModulePath) {
+                    throw new Error("Must specify the module to install and test");
+                }
+                targetModulePath = path.resolve(targetModulePath);
 
+                //TODO BRN: Add ability to target specific test OR a test suite.
 
-//-------------------------------------------------------------------------------
-// Bootstrap
-//-------------------------------------------------------------------------------
+                BugUnitCli.start(targetModulePath, function(error) {
+                    if (error) {
+                        console.log(error);
+                        console.log(error.stack);
+                        process.exit(1);
+                    }
+                });
 
-var targetModulePath = process.argv[2];
-if (!targetModulePath) {
-    throw new Error("Must specify the module to install and test");
-}
-targetModulePath = path.resolve(targetModulePath);
-
-//TODO BRN: Add ability to target specific test OR a test suite.
-
-BugUnitCli.start(targetModulePath, function(error) {
-    if (error) {
-        console.log(error);
-        console.log(error.stack);
+            } else {
+                console.error(error);
+                process.exit(1);
+            }
+        });
+    } else {
+        console.error(error);
         process.exit(1);
     }
 });

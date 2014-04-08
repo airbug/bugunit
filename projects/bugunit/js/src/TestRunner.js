@@ -2,15 +2,13 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugunit')
-
-//@Export('TestRunner')
+//@Export('bugunit.TestRunner')
 
 //@Require('Class')
 //@Require('List')
 //@require('Obj')
-//@Require('Test')
-//@Require('TestResult')
+//@Require('bugunit.Test')
+//@Require('bugunit.TestResult')
 //@Require('bugtrace.BugTrace')
 
 
@@ -18,39 +16,48 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack     = require('bugpack').context();
-var domain      = require('domain');
+var bugpack         = require('bugpack').context();
+var domain          = require('domain');
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Class       = bugpack.require('Class');
-var List        = bugpack.require('List');
-var Obj         = bugpack.require('Obj');
-var Test        = bugpack.require('bugunit.Test');
-var TestResult  = bugpack.require('bugunit.TestResult');
-var BugTrace    = bugpack.require('bugtrace.BugTrace');
+var Class           = bugpack.require('Class');
+var List            = bugpack.require('List');
+var Obj             = bugpack.require('Obj');
+var Test            = bugpack.require('bugunit.Test');
+var TestResult      = bugpack.require('bugunit.TestResult');
+var BugTrace        = bugpack.require('bugtrace.BugTrace');
 
 
 //-------------------------------------------------------------------------------
 // Simplify References
 //-------------------------------------------------------------------------------
 
-var $name       = BugTrace.$name;
+var $name           = BugTrace.$name;
 
 
 //-------------------------------------------------------------------------------
 // Declare Class
 //-------------------------------------------------------------------------------
 
+/**
+ * @class
+ * @extends {Obj}
+ */
 var TestRunner = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
+    /**
+     * @constructs
+     * @param {Test} test
+     * @param {boolean} logResults
+     */
     _constructor: function(test, logResults) {
 
         this._super();
@@ -64,31 +71,31 @@ var TestRunner = Class.extend(Obj, {
          * @private
          * @type {*}
          */
-        this.callback   = undefined;
+        this.callback       = null;
 
         /**
          * @private
          * @type {boolean}
          */
-        this.completed  = false;
+        this.completed      = false;
 
         /**
          * @private
          * @type {boolean}
          */
-        this.logResults = logResults;
+        this.logResults     = logResults;
 
         /**
          * @private
          * @type {Test}
          */
-        this.test       = test;
+        this.test           = test;
 
         /**
          * @private
          * @type {TestResult}
          */
-        this.testResult = new TestResult(test);
+        this.testResult     = new TestResult(test);
     },
 
 
@@ -103,6 +110,11 @@ var TestRunner = Class.extend(Obj, {
         return this.test;
     },
 
+
+    //-------------------------------------------------------------------------------
+    // Convenience Methods
+    //-------------------------------------------------------------------------------
+
     /**
      * @return {boolean}
      */
@@ -112,7 +124,7 @@ var TestRunner = Class.extend(Obj, {
 
 
     //-------------------------------------------------------------------------------
-    // Public Instance Methods
+    // Public Methods
     //-------------------------------------------------------------------------------
 
     /**

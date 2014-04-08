@@ -2,9 +2,7 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugdouble')
-
-//@Export('ObjectSpy')
+//@Export('bugdouble.ObjectSpy')
 
 //@Require('Class')
 //@Require('Map')
@@ -17,30 +15,38 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context();
+var bugpack         = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
 // BugPack
 //-------------------------------------------------------------------------------
 
-var Class       = bugpack.require('Class');
-var Map         = bugpack.require('Map');
-var Obj         = bugpack.require('Obj');
-var TypeUtil    = bugpack.require('TypeUtil');
-var FunctionSpy = bugpack.require('bugdouble.FunctionSpy');
+var Class           = bugpack.require('Class');
+var Map             = bugpack.require('Map');
+var Obj             = bugpack.require('Obj');
+var TypeUtil        = bugpack.require('TypeUtil');
+var FunctionSpy     = bugpack.require('bugdouble.FunctionSpy');
 
 
 //-------------------------------------------------------------------------------
 // Declare Class
 //-------------------------------------------------------------------------------
 
+/**
+ * @class
+ * @extends {Obj}
+ */
 var ObjectSpy = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
+    /**
+     * @constructs
+     * @param {Object} targetObject
+     */
     _constructor: function(targetObject) {
 
         this._super();
@@ -54,13 +60,13 @@ var ObjectSpy = Class.extend(Obj, {
          * @private
          * @type {Map.<string, FunctionSpy>}
          */
-        this.functionSpies = new Map();
+        this.functionSpies  = new Map();
 
         /**
          * @private
          * @type {Object}
          */
-        this.targetObject = targetObject;
+        this.targetObject   = targetObject;
     },
 
 

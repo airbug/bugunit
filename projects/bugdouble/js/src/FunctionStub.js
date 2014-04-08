@@ -2,9 +2,7 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Package('bugdouble')
-
-//@Export('FunctionStub')
+//@Export('bugdouble.FunctionStub')
 
 //@Require('Class')
 //@Require('Obj')
@@ -15,7 +13,7 @@
 // Common Modules
 //-------------------------------------------------------------------------------
 
-var bugpack = require('bugpack').context();
+var bugpack         = require('bugpack').context();
 
 
 //-------------------------------------------------------------------------------
@@ -31,12 +29,21 @@ var FunctionSpy     = bugpack.require('bugdouble.FunctionSpy');
 // Declare Class
 //-------------------------------------------------------------------------------
 
+/**
+ * @class
+ * @extends {Obj}
+ */
 var FunctionStub = Class.extend(Obj, {
 
     //-------------------------------------------------------------------------------
     // Constructor
     //-------------------------------------------------------------------------------
 
+    /**
+     * @constructs
+     * @param {function(...):*} targetFunction
+     * @param {function(...):*} stubFunction
+     */
     _constructor: function(targetFunction, stubFunction) {
 
         this._super();
@@ -48,15 +55,15 @@ var FunctionStub = Class.extend(Obj, {
 
         /**
          * @private
-         * @type {function()}
+         * @type {function(...):*}
          */
-        this.stubFunction = stubFunction;
+        this.stubFunction       = stubFunction;
 
         /**
          * @private
-         * @type {Object}
+         * @type {function(...):*}
          */
-        this.targetFunction = targetFunction;
+        this.targetFunction     = targetFunction;
     },
 
 
@@ -65,14 +72,14 @@ var FunctionStub = Class.extend(Obj, {
     //-------------------------------------------------------------------------------
 
     /**
-     * @return {function()}
+     * @return {function(...):*}
      */
     getStubFunction: function() {
         return this.stubFunction
     },
 
     /**
-     * @return {function()}
+     * @return {function(...):*}
      */
     getTargetFunction: function() {
         return this.targetFunction;
@@ -84,7 +91,7 @@ var FunctionStub = Class.extend(Obj, {
     //-------------------------------------------------------------------------------
 
     /**
-     *
+     * @return {function(...):*}
      */
     stub: function() {
         return (new FunctionSpy(this.stubFunction)).spy();

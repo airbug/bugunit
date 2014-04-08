@@ -28,51 +28,57 @@ var nodejs              = enableModule("nodejs");
 
 
 //-------------------------------------------------------------------------------
+// Values
+//-------------------------------------------------------------------------------
+
+var version             = "0.1.0";
+var dependencies        = {
+    bugpack: "0.1.5",
+    npm: "1.2.x",
+    tar: "0.1.x"
+};
+
+
+//-------------------------------------------------------------------------------
 // Declare Properties
 //-------------------------------------------------------------------------------
 
 buildProperties({
-    packageJson: {
-        name: "bugunit",
-        version: "0.0.14",
-        main: "./lib/bug-unit-cli-module.js",
-        private: true,
-        bin: "bin/bugunit",
-        scripts: {
-            start: "node ./scripts/bugunit-cli-start.js"
+    node: {
+        packageJson: {
+            name: "bugunit",
+            version: version,
+            main: "./lib/bug-unit-cli-module.js",
+            private: true,
+            bin: "bin/bugunit",
+            scripts: {
+                start: "node ./scripts/bugunit-cli-start.js"
+            },
+            dependencies: dependencies
         },
-        dependencies: {
-            npm: "1.2.x",
-            tar: "0.1.x",
-            bugpack: "https://s3.amazonaws.com/deploy-airbug/bugpack-0.0.5.tgz"
-        }
-    },
-    sourcePaths: [
-        "../bugjs/projects/bugjs/js/src",
-        "../bugjs/projects/bugfs/js/src",
-        "../bugjs/projects/bugflow/js/src",
-        '../bugjs/projects/bugtrace/js/src',
-        "./projects/bugunit-cli/js/src"
-    ],
-    scriptPaths: [
-        "./projects/bugunit-cli/js/scripts"
-    ],
-    binPaths: [
-        "./projects/bugunit-cli/bin"
-    ]
+        sourcePaths: [
+            "../bugcore/projects/bugcore/js/src",
+            "../bugflow/projects/bugflow/js/src",
+            "../bugfs/projects/bugfs/js/src",
+            '../bugtrace/projects/bugtrace/js/src',
+            "./projects/bugunit-cli/js/src"
+        ],
+        scriptPaths: [
+            "./projects/bugunit-cli/js/scripts",
+            "./projects/bugunit/js/scripts"
+        ],
+        binPaths: [
+            "./projects/bugunit-cli/bin"
+        ]
+    }
 });
 
 
 //-------------------------------------------------------------------------------
-// Declare Tasks
+// Declare BuildTasks
 //-------------------------------------------------------------------------------
 
-
-//-------------------------------------------------------------------------------
-// Declare Flows
-//-------------------------------------------------------------------------------
-
-// Clean Flow
+// Clean BuildTask
 //-------------------------------------------------------------------------------
 
 buildTarget("clean").buildFlow(
@@ -80,7 +86,7 @@ buildTarget("clean").buildFlow(
 );
 
 
-// Local Flow
+// Local BuildTask
 //-------------------------------------------------------------------------------
 
 buildTarget("local").buildFlow(
@@ -92,16 +98,17 @@ buildTarget("local").buildFlow(
         targetTask("clean"),
         targetTask("createNodePackage", {
             properties: {
-                packageJson: buildProject.getProperty("packageJson"),
-                sourcePaths: buildProject.getProperty("sourcePaths"),
-                binPaths: buildProject.getProperty("binPaths")
+                binPaths: buildProject.getProperty("node.binPaths"),
+                packageJson: buildProject.getProperty("node.packageJson"),
+                scriptPaths: buildProject.getProperty("node.scriptPaths"),
+                sourcePaths: buildProject.getProperty("node.sourcePaths")
             }
         }),
         targetTask('generateBugPackRegistry', {
             init: function(task, buildProject, properties) {
                 var nodePackage = nodejs.findNodePackage(
-                    buildProject.getProperty("packageJson.name"),
-                    buildProject.getProperty("packageJson.version")
+                    buildProject.getProperty("node.packageJson.name"),
+                    buildProject.getProperty("node.packageJson.version")
                 );
                 task.updateProperties({
                     sourceRoot: nodePackage.getBuildPath()
@@ -110,14 +117,14 @@ buildTarget("local").buildFlow(
         }),
         targetTask("packNodePackage", {
             properties: {
-                packageName: buildProject.getProperty("packageJson.name"),
-                packageVersion: buildProject.getProperty("packageJson.version")
+                packageName: "{{node.packageJson.name}}",
+                packageVersion: "{{node.packageJson.version}}"
             }
         }),
         targetTask("s3PutFile", {
             init: function(task, buildProject, properties) {
-                var packedNodePackage = nodejs.findPackedNodePackage(buildProject.getProperty("packageJson.name"),
-                    buildProject.getProperty("packageJson.version"));
+                var packedNodePackage = nodejs.findPackedNodePackage(buildProject.getProperty("node.packageJson.name"),
+                    buildProject.getProperty("node.packageJson.version"));
                 task.updateProperties({
                     file: packedNodePackage.getFilePath(),
                     options: {
@@ -134,7 +141,7 @@ buildTarget("local").buildFlow(
 ).makeDefault();
 
 
-// Prod Flow
+// Prod BuildTask
 //-------------------------------------------------------------------------------
 
 buildTarget("prod").buildFlow(
@@ -146,15 +153,17 @@ buildTarget("prod").buildFlow(
         targetTask("clean"),
         targetTask("createNodePackage", {
             properties: {
-                packageJson: buildProject.getProperty("packageJson"),
-                sourcePaths: buildProject.getProperty("sourcePaths")
+                binPaths: buildProject.getProperty("node.binPaths"),
+                packageJson: buildProject.getProperty("node.packageJson"),
+                scriptPaths: buildProject.getProperty("node.scriptPaths"),
+                sourcePaths: buildProject.getProperty("node.sourcePaths")
             }
         }),
         targetTask('generateBugPackRegistry', {
             init: function(task, buildProject, properties) {
                 var nodePackage = nodejs.findNodePackage(
-                    buildProject.getProperty("packageJson.name"),
-                    buildProject.getProperty("packageJson.version")
+                    buildProject.getProperty("node.packageJson.name"),
+                    buildProject.getProperty("node.packageJson.version")
                 );
                 task.updateProperties({
                     sourceRoot: nodePackage.getBuildPath()
@@ -163,14 +172,14 @@ buildTarget("prod").buildFlow(
         }),
         targetTask("packNodePackage", {
             properties: {
-                packageName: buildProject.getProperty("packageJson.name"),
-                packageVersion: buildProject.getProperty("packageJson.version")
+                packageName: buildProject.getProperty("node.packageJson.name"),
+                packageVersion: buildProject.getProperty("node.packageJson.version")
             }
         }),
         targetTask("s3PutFile", {
             init: function(task, buildProject, properties) {
-                var packedNodePackage = nodejs.findPackedNodePackage(buildProject.getProperty("packageJson.name"),
-                    buildProject.getProperty("packageJson.version"));
+                var packedNodePackage = nodejs.findPackedNodePackage(buildProject.getProperty("node.packageJson.name"),
+                    buildProject.getProperty("node.packageJson.version"));
                 task.updateProperties({
                     file: packedNodePackage.getFilePath(),
                     options: {
