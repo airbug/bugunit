@@ -25,19 +25,21 @@ bugpackApi.loadContext(module, function(error, bugpack) {
 
                 BugUnitCli.start(targetModulePath, function(error) {
                     if (error) {
-                        console.log(error);
+                        console.log(error.message);
                         console.log(error.stack);
                         process.exit(1);
                     }
                 });
 
             } else {
-                console.error(error);
+                console.error(error.message);
+                console.error(error.stack);
                 process.exit(1);
             }
         });
     } else {
-        console.error(error);
+        console.error(error.message);
+        console.error(error.stack);
         process.exit(1);
     }
 });
