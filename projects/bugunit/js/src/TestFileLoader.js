@@ -94,7 +94,7 @@ var TestFileLoader = Class.extend(Obj, {
      */
     load: function(callback) {
         var _this                       = this;
-        var fileFinder                  = new FileFinder([".*\\.js"], []);
+        var fileFinder                  = new FileFinder([".*\\.js"], [".*node_modules$"]);
         var filePaths                   = null;
         var annotationRegistryLibrary   = null;
         $series([
