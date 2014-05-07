@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2014 airbug Inc. All rights reserved.
+ *
+ * All software, both binary and source contained in this work is the exclusive property
+ * of airbug Inc. Modification, decompilation, disassembly, or any other means of discovering
+ * the source code of this software is prohibited. This work is protected under the United
+ * States copyright law and other international copyright treaties and conventions.
+ */
+
+
 //-------------------------------------------------------------------------------
 // Requires
 //-------------------------------------------------------------------------------
@@ -31,10 +41,10 @@ var nodejs              = enableModule("nodejs");
 // Values
 //-------------------------------------------------------------------------------
 
-var version             = "0.1.1";
+var version             = "0.1.2";
 var dependencies        = {
     bugpack: "0.1.12",
-    npm: "1.2.x",
+    npm: "1.4.x",
     tar: "0.1.x"
 };
 
@@ -48,11 +58,11 @@ buildProperties({
         packageJson: {
             name: "bugunit",
             version: version,
-            main: "./lib/bug-unit-cli-module.js",
+            main: "./scripts/bugunit-node-module.js",
             private: true,
             bin: "bin/bugunit",
             scripts: {
-                start: "node ./scripts/bugunit-cli-start.js"
+                start: "node ./scripts/bugunit-cli.js"
             },
             dependencies: dependencies
         },
@@ -60,6 +70,7 @@ buildProperties({
             "../bugcore/projects/bugcore/js/src",
             "../bugflow/projects/bugflow/js/src",
             "../bugfs/projects/bugfs/js/src",
+            "../bugjs/projects/npm/js/src",
             '../bugtrace/projects/bugtrace/js/src',
             "./projects/bugunit-cli/js/src"
         ],

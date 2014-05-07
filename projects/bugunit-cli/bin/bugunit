@@ -1,2 +1,2 @@
 #!/usr/bin/env node
-require('../scripts/bugunit-cli-start.js');
+require('../scripts/bugunit-cli.js');

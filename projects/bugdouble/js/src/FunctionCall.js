@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2014 airbug Inc. All rights reserved.
+ *
+ * All software, both binary and source contained in this work is the exclusive property
+ * of airbug Inc. Modification, decompilation, disassembly, or any other means of discovering
+ * the source code of this software is prohibited. This work is protected under the United
+ * States copyright law and other international copyright treaties and conventions.
+ */
+
+
 //-------------------------------------------------------------------------------
 // Annotations
 //-------------------------------------------------------------------------------
@@ -10,72 +20,75 @@
 
 
 //-------------------------------------------------------------------------------
-// Common Modules
+// Context
 //-------------------------------------------------------------------------------
 
-var bugpack     = require('bugpack').context();
-
-
-//-------------------------------------------------------------------------------
-// BugPack
-//-------------------------------------------------------------------------------
-
-var Class       = bugpack.require('Class');
-var List        = bugpack.require('List');
-var Obj         = bugpack.require('Obj');
-
-
-//-------------------------------------------------------------------------------
-// Declare Class
-//-------------------------------------------------------------------------------
-
-/**
- * @class
- * @extends {Obj}
- */
-var FunctionCall = Class.extend(Obj, {
+require('bugpack').context("*", function(bugpack) {
 
     //-------------------------------------------------------------------------------
-    // Constructor
+    // BugPack
+    //-------------------------------------------------------------------------------
+
+    var Class       = bugpack.require('Class');
+    var List        = bugpack.require('List');
+    var Obj         = bugpack.require('Obj');
+
+
+    //-------------------------------------------------------------------------------
+    // Declare Class
     //-------------------------------------------------------------------------------
 
     /**
-     * @constructs
-     * @param {Array.<*>} arguments
+     * @class
+     * @extends {Obj}
      */
-    _constructor: function(arguments) {
+    var FunctionCall = Class.extend(Obj, {
 
-        this._super();
+        _name: "bugdouble.FunctionCall",
 
 
         //-------------------------------------------------------------------------------
-        // Private Properties
+        // Constructor
+        //-------------------------------------------------------------------------------
+
+        /**
+         * @constructs
+         * @param {Array.<*>} arguments
+         */
+        _constructor: function(arguments) {
+
+            this._super();
+
+
+            //-------------------------------------------------------------------------------
+            // Private Properties
+            //-------------------------------------------------------------------------------
+
+            /**
+             * @private
+             * @type {Array.<*>}
+             */
+            this.arguments = arguments;
+        },
+
+
+        //-------------------------------------------------------------------------------
+        // Getters and Setters
         //-------------------------------------------------------------------------------
 
         /**
          * @private
-         * @type {Array.<*>}
+         * @return {Array.<*>}
          */
-        this.arguments = arguments;
-    },
+        getArguments: function() {
+            return this.arguments;
+        }
+    });
 
 
     //-------------------------------------------------------------------------------
-    // Getters and Setters
+    // Exports
     //-------------------------------------------------------------------------------
 
-    /**
-     * @private
-     * @return {Array.<*>}
-     */
-    getArguments: function() {
-        return this.arguments;
-    }
+    bugpack.export('bugdouble.FunctionCall', FunctionCall);
 });
-
-
-//-------------------------------------------------------------------------------
-// Exports
-//-------------------------------------------------------------------------------
-
-bugpack.export('bugdouble.FunctionCall', FunctionCall);

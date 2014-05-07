@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2014 airbug Inc. All rights reserved.
+ *
+ * All software, both binary and source contained in this work is the exclusive property
+ * of airbug Inc. Modification, decompilation, disassembly, or any other means of discovering
+ * the source code of this software is prohibited. This work is protected under the United
+ * States copyright law and other international copyright treaties and conventions.
+ */
+
+
 //-------------------------------------------------------------------------------
 // Annotations
 //-------------------------------------------------------------------------------
@@ -13,126 +23,129 @@
 
 
 //-------------------------------------------------------------------------------
-// Common Modules
+// Context
 //-------------------------------------------------------------------------------
 
-var bugpack         = require('bugpack').context();
-
-
-//-------------------------------------------------------------------------------
-// BugPack
-//-------------------------------------------------------------------------------
-
-var ArgUtil         = bugpack.require('ArgUtil');
-var Class           = bugpack.require('Class');
-var List            = bugpack.require('List');
-var Obj             = bugpack.require('Obj');
-var Proxy           = bugpack.require('Proxy');
-var FunctionCall    = bugpack.require('bugdouble.FunctionCall');
-
-
-//-------------------------------------------------------------------------------
-// Declare Class
-//-------------------------------------------------------------------------------
-
-/**
- * @class
- * @extends {Obj}
- */
-var FunctionSpy = Class.extend(Obj, {
+require('bugpack').context("*", function(bugpack) {
 
     //-------------------------------------------------------------------------------
-    // Constructor
+    // BugPack
+    //-------------------------------------------------------------------------------
+
+    var ArgUtil         = bugpack.require('ArgUtil');
+    var Class           = bugpack.require('Class');
+    var List            = bugpack.require('List');
+    var Obj             = bugpack.require('Obj');
+    var Proxy           = bugpack.require('Proxy');
+    var FunctionCall    = bugpack.require('bugdouble.FunctionCall');
+
+
+    //-------------------------------------------------------------------------------
+    // Declare Class
     //-------------------------------------------------------------------------------
 
     /**
-     * @constructs
-     * @param {function(...):*} targetFunction
+     * @class
+     * @extends {Obj}
      */
-    _constructor: function(targetFunction) {
+    var FunctionSpy = Class.extend(Obj, {
 
-        this._super();
+        _name: "bugdouble.FunctionSpy",
 
 
         //-------------------------------------------------------------------------------
-        // Private Properties
+        // Constructor
         //-------------------------------------------------------------------------------
 
         /**
-         * @private
-         * @type {List.<FunctionCall>}
+         * @constructs
+         * @param {function(...):*} targetFunction
          */
-        this.functionCallList   = new List();
+        _constructor: function(targetFunction) {
+
+            this._super();
+
+
+            //-------------------------------------------------------------------------------
+            // Private Properties
+            //-------------------------------------------------------------------------------
+
+            /**
+             * @private
+             * @type {List.<FunctionCall>}
+             */
+            this.functionCallList   = new List();
+
+            /**
+             * @private
+             * @type {function(...):*}
+             */
+            this.targetFunction     = targetFunction;
+        },
+
+
+        //-------------------------------------------------------------------------------
+        // Getters and Setters
+        //-------------------------------------------------------------------------------
 
         /**
-         * @private
-         * @type {function(...):*}
+         * @return {function(...):*}
          */
-        this.targetFunction     = targetFunction;
-    },
+        getTargetFunction: function() {
+            return this.targetFunction;
+        },
+
+
+        //-------------------------------------------------------------------------------
+        // Class Methods
+        //-------------------------------------------------------------------------------
+
+        /**
+         * @return {number}
+         */
+        getCallCount: function() {
+            return this.functionCallList.getCount();
+        },
+
+        /**
+         * @return {function(...):*}
+         */
+        spy: function() {
+            var _this = this;
+            var spy = function() {
+                /** @type {Array.<*>} */
+                var args = ArgUtil.toArray(arguments);
+                var functionCall = new FunctionCall(args);
+                _this.functionCallList.add(functionCall);
+                return _this.targetFunction.apply(this, args);
+            };
+            Proxy.proxy(spy, _this, [
+                "getCallCount",
+                "wasCalled",
+                "wasNotCalled"
+            ]);
+            return spy;
+        },
+
+        /**
+         * @return {boolean}
+         */
+        wasCalled: function() {
+            return this.functionCallList.getCount() > 0;
+        },
+
+        /**
+         * @return {boolean}
+         */
+        wasNotCalled: function() {
+            return this.functionCallList.getCount() === 0;
+        }
+    });
 
 
     //-------------------------------------------------------------------------------
-    // Getters and Setters
+    // Exports
     //-------------------------------------------------------------------------------
 
-    /**
-     * @return {function(...):*}
-     */
-    getTargetFunction: function() {
-        return this.targetFunction;
-    },
-
-
-    //-------------------------------------------------------------------------------
-    // Class Methods
-    //-------------------------------------------------------------------------------
-
-    /**
-     * @return {number}
-     */
-    getCallCount: function() {
-        return this.functionCallList.getCount();
-    },
-
-    /**
-     * @return {function(...):*}
-     */
-    spy: function() {
-        var _this = this;
-        var spy = function() {
-            /** @type {Array.<*>} */
-            var args = ArgUtil.toArray(arguments);
-            var functionCall = new FunctionCall(args);
-            _this.functionCallList.add(functionCall);
-            return _this.targetFunction.apply(this, args);
-        };
-        Proxy.proxy(spy, _this, [
-            "getCallCount",
-            "wasCalled",
-            "wasNotCalled"
-        ]);
-        return spy;
-    },
-
-    /**
-     * @return {boolean}
-     */
-    wasCalled: function() {
-        return this.functionCallList.getCount() > 0;
-    },
-
-    /**
-     * @return {boolean}
-     */
-    wasNotCalled: function() {
-        return this.functionCallList.getCount() === 0;
-    }
+    bugpack.export('bugdouble.FunctionSpy', FunctionSpy);
 });
-
-
-//-------------------------------------------------------------------------------
-// Exports
-//-------------------------------------------------------------------------------
-
-bugpack.export('bugdouble.FunctionSpy', FunctionSpy);

@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2014 airbug Inc. All rights reserved.
+ *
+ * All software, both binary and source contained in this work is the exclusive property
+ * of airbug Inc. Modification, decompilation, disassembly, or any other means of discovering
+ * the source code of this software is prohibited. This work is protected under the United
+ * States copyright law and other international copyright treaties and conventions.
+ */
+
+
 //-------------------------------------------------------------------------------
 // Annotations
 //-------------------------------------------------------------------------------
@@ -9,103 +19,106 @@
 
 
 //-------------------------------------------------------------------------------
-// Common Modules
+// Context
 //-------------------------------------------------------------------------------
 
-var bugpack     = require('bugpack').context();
-
-
-//-------------------------------------------------------------------------------
-// BugPack
-//-------------------------------------------------------------------------------
-
-var Class       = bugpack.require('Class');
-var Obj         = bugpack.require('Obj');
-
-
-//-------------------------------------------------------------------------------
-// Declare Class
-//-------------------------------------------------------------------------------
-
-/**
- * @class
- * @extends {Obj}
- */
-var AssertionResult = Class.extend(Obj, {
+require('bugpack').context("*", function(bugpack) {
 
     //-------------------------------------------------------------------------------
-    // Constructor
+    // BugPack
+    //-------------------------------------------------------------------------------
+
+    var Class       = bugpack.require('Class');
+    var Obj         = bugpack.require('Obj');
+
+
+    //-------------------------------------------------------------------------------
+    // Declare Class
     //-------------------------------------------------------------------------------
 
     /**
-     * @constructs
-     * @param {boolean} passed
-     * @param {string} message
+     * @class
+     * @extends {Obj}
      */
-    _constructor: function(passed, message) {
+    var AssertionResult = Class.extend(Obj, {
 
-        this._super();
+        _name: "bugunit.AssertionResult",
 
 
         //-------------------------------------------------------------------------------
-        // Private Properties
+        // Constructor
         //-------------------------------------------------------------------------------
 
         /**
-         * @private
-         * @type {string}
+         * @constructs
+         * @param {boolean} passed
+         * @param {string} message
          */
-        this.message    = message;
+        _constructor: function(passed, message) {
+
+            this._super();
+
+
+            //-------------------------------------------------------------------------------
+            // Private Properties
+            //-------------------------------------------------------------------------------
+
+            /**
+             * @private
+             * @type {string}
+             */
+            this.message    = message;
+
+            /**
+             * @private
+             * @type {boolean}
+             */
+            this.passed     = passed;
+        },
+
+
+        //-------------------------------------------------------------------------------
+        // Getters and Setters
+        //-------------------------------------------------------------------------------
 
         /**
-         * @private
-         * @type {boolean}
+         * @return {string}
          */
-        this.passed     = passed;
-    },
+        getMessage: function() {
+            return this.message;
+        },
+
+        /**
+         * @return {boolean}
+         */
+        getPassed: function() {
+            return this.passed;
+        },
+
+
+        //-------------------------------------------------------------------------------
+        // Public Methods
+        //-------------------------------------------------------------------------------
+
+        /**
+         * @return {boolean}
+         */
+        didAssertionPass: function() {
+            return this.passed;
+        },
+
+        /**
+         * @return {boolean}
+         */
+        didAssertionFail: function() {
+            return !this.passed;
+        }
+    });
 
 
     //-------------------------------------------------------------------------------
-    // Getters and Setters
+    // Exports
     //-------------------------------------------------------------------------------
 
-    /**
-     * @return {string}
-     */
-    getMessage: function() {
-        return this.message;
-    },
-
-    /**
-     * @return {boolean}
-     */
-    getPassed: function() {
-        return this.passed;
-    },
-
-
-    //-------------------------------------------------------------------------------
-    // Public Methods
-    //-------------------------------------------------------------------------------
-
-    /**
-     * @return {boolean}
-     */
-    didAssertionPass: function() {
-        return this.passed;
-    },
-
-    /**
-     * @return {boolean}
-     */
-    didAssertionFail: function() {
-        return !this.passed;
-    }
+    bugpack.export('bugunit.AssertionResult', AssertionResult);
 });
-
-
-//-------------------------------------------------------------------------------
-// Exports
-//-------------------------------------------------------------------------------
-
-bugpack.export('bugunit.AssertionResult', AssertionResult);

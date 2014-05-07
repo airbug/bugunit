@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2014 airbug Inc. All rights reserved.
+ *
+ * All software, both binary and source contained in this work is the exclusive property
+ * of airbug Inc. Modification, decompilation, disassembly, or any other means of discovering
+ * the source code of this software is prohibited. This work is protected under the United
+ * States copyright law and other international copyright treaties and conventions.
+ */
+
+
 //-------------------------------------------------------------------------------
 // Annotations
 //-------------------------------------------------------------------------------
@@ -10,172 +20,175 @@
 
 
 //-------------------------------------------------------------------------------
-// Common Modules
+// Context
 //-------------------------------------------------------------------------------
 
-var bugpack     = require('bugpack').context();
-
-
-//-------------------------------------------------------------------------------
-// BugPack
-//-------------------------------------------------------------------------------
-
-var Class       = bugpack.require('Class');
-var List        = bugpack.require('List');
-var Obj         = bugpack.require('Obj');
-
-
-//-------------------------------------------------------------------------------
-// Declare Class
-//-------------------------------------------------------------------------------
-
-/**
- * @constructs
- * @extends {Obj}
- */
-var TestResult = Class.extend(Obj, {
+require('bugpack').context("*", function(bugpack) {
 
     //-------------------------------------------------------------------------------
-    // Constructor
+    // BugPack
+    //-------------------------------------------------------------------------------
+
+    var Class       = bugpack.require('Class');
+    var List        = bugpack.require('List');
+    var Obj         = bugpack.require('Obj');
+
+
+    //-------------------------------------------------------------------------------
+    // Declare Class
     //-------------------------------------------------------------------------------
 
     /**
      * @constructs
-     * @param {Test} test
+     * @extends {Obj}
      */
-    _constructor: function(test) {
+    var TestResult = Class.extend(Obj, {
 
-        this._super();
+        _name: "bugunit.TestResult",
 
 
         //-------------------------------------------------------------------------------
-        // Private Properties
+        // Constructor
         //-------------------------------------------------------------------------------
 
         /**
-         * @private
-         * @type {List.<AssertionResult>}
+         * @constructs
+         * @param {Test} test
          */
-        this.assertionResultList        = new List();
+        _constructor: function(test) {
+
+            this._super();
+
+
+            //-------------------------------------------------------------------------------
+            // Private Properties
+            //-------------------------------------------------------------------------------
+
+            /**
+             * @private
+             * @type {List.<AssertionResult>}
+             */
+            this.assertionResultList        = new List();
+
+            /**
+             * @private
+             * @type {Throwable}
+             */
+            this.error                      = null;
+
+            /**
+             * @private
+             * @type {List.<AssertionResult>}
+             */
+            this.failedAssertionResultList  = new List();
+
+            /**
+             * @private
+             * @type {Test}
+             */
+            this.test                       = test;
+        },
+
+
+        //-------------------------------------------------------------------------------
+        // Getters and Setters
+        //-------------------------------------------------------------------------------
 
         /**
-         * @private
-         * @type {Throwable}
+         * @return {Throwable}
          */
-        this.error                      = null;
+        getError: function() {
+            return this.error;
+        },
 
         /**
-         * @private
-         * @type {List.<AssertionResult>}
+         * @param {Error} error
          */
-        this.failedAssertionResultList  = new List();
+        setError: function(error) {
+            this.error = error;
+        },
 
         /**
-         * @private
-         * @type {Test}
+         * @return {List.<AssertionResult>}
          */
-        this.test                       = test;
-    },
+        getFailedAssertionResultList: function() {
+            return this.failedAssertionResultList;
+        },
+
+        /**
+         * @return {Test}
+         */
+        getTest: function() {
+            return this.test;
+        },
 
 
-    //-------------------------------------------------------------------------------
-    // Getters and Setters
-    //-------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------
+        // Convenience Methods
+        //-------------------------------------------------------------------------------
 
-    /**
-     * @return {Throwable}
-     */
-    getError: function() {
-        return this.error;
-    },
-
-    /**
-     * @param {Error} error
-     */
-    setError: function(error) {
-        this.error = error;
-    },
-
-    /**
-     * @return {List.<AssertionResult>}
-     */
-    getFailedAssertionResultList: function() {
-        return this.failedAssertionResultList;
-    },
-
-    /**
-     * @return {Test}
-     */
-    getTest: function() {
-        return this.test;
-    },
+        /**
+         * @return {boolean}
+         */
+        errorOccurred: function() {
+            return this.error !== null;
+        },
 
 
-    //-------------------------------------------------------------------------------
-    // Convenience Methods
-    //-------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------
+        // Public Methods
+        //-------------------------------------------------------------------------------
 
-    /**
-     * @return {boolean}
-     */
-    errorOccurred: function() {
-        return this.error !== null;
-    },
+        /**
+         * @param {AssertionResult} assertionResult
+         */
+        addAssertionResult: function(assertionResult) {
+            this.assertionResultList.add(assertionResult);
+            if (assertionResult.didAssertionFail()) {
+                this.failedAssertionResultList.add(assertionResult);
+            }
+        },
 
+        /**
+         * @return {boolean}
+         */
+        didTestFail: function() {
+            return !this.didTestPass();
+        },
 
-    //-------------------------------------------------------------------------------
-    // Public Methods
-    //-------------------------------------------------------------------------------
+        /**
+         * @return {boolean}
+         */
+        didTestPass: function() {
+            return (this.numberFailedAssertions() === 0 && !this.errorOccurred());
+        },
 
-    /**
-     * @param {AssertionResult} assertionResult
-     */
-    addAssertionResult: function(assertionResult) {
-        this.assertionResultList.add(assertionResult);
-        if (assertionResult.didAssertionFail()) {
-            this.failedAssertionResultList.add(assertionResult);
+        /**
+         * @return {number}
+         */
+        numberAssertions: function() {
+            return this.assertionResultList.getCount();
+        },
+
+        /**
+         * @return {number}
+         */
+        numberFailedAssertions: function() {
+            return this.failedAssertionResultList.getCount();
+        },
+
+        /**
+         * @return {number}
+         */
+        numberPassedAssertions: function() {
+            return (this.assertionResultList.getCount() - this.failedAssertionResultList.getCount());
         }
-    },
+    });
 
-    /**
-     * @return {boolean}
-     */
-    didTestFail: function() {
-        return !this.didTestPass();
-    },
 
-    /**
-     * @return {boolean}
-     */
-    didTestPass: function() {
-        return (this.numberFailedAssertions() === 0 && !this.errorOccurred());
-    },
+    //-------------------------------------------------------------------------------
+    // Exports
+    //-------------------------------------------------------------------------------
 
-    /**
-     * @return {number}
-     */
-    numberAssertions: function() {
-        return this.assertionResultList.getCount();
-    },
-
-    /**
-     * @return {number}
-     */
-    numberFailedAssertions: function() {
-        return this.failedAssertionResultList.getCount();
-    },
-
-    /**
-     * @return {number}
-     */
-    numberPassedAssertions: function() {
-        return (this.assertionResultList.getCount() - this.failedAssertionResultList.getCount());
-    }
+    bugpack.export("bugunit.TestResult", TestResult);
 });
-
-
-//-------------------------------------------------------------------------------
-// Exports
-//-------------------------------------------------------------------------------
-
-bugpack.export("bugunit.TestResult", TestResult);

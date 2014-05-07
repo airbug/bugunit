@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2014 airbug Inc. All rights reserved.
+ *
+ * All software, both binary and source contained in this work is the exclusive property
+ * of airbug Inc. Modification, decompilation, disassembly, or any other means of discovering
+ * the source code of this software is prohibited. This work is protected under the United
+ * States copyright law and other international copyright treaties and conventions.
+ */
+
+
 //-------------------------------------------------------------------------------
 // Annotations
 //-------------------------------------------------------------------------------
@@ -14,92 +24,94 @@
 // Context
 //-------------------------------------------------------------------------------
 
-var bugpackApi      = require('bugpack');
-var bugpack         = bugpackApi.context();
-
-
-//-------------------------------------------------------------------------------
-// BugPack
-//-------------------------------------------------------------------------------
-
-var Class           = bugpack.require('Class');
-var Obj             = bugpack.require('Obj');
-var Test            = bugpack.require('bugunit.Test');
-
-
-//-------------------------------------------------------------------------------
-// Declare Class
-//-------------------------------------------------------------------------------
-
-/**
- * @class
- * @extends {Obj}
- */
-var TestScan = Class.extend(Obj, {
+require('bugpack').context("*", function(bugpack) {
 
     //-------------------------------------------------------------------------------
-    // Constructor
+    // BugPack
+    //-------------------------------------------------------------------------------
+
+    var Class           = bugpack.require('Class');
+    var Obj             = bugpack.require('Obj');
+    var Test            = bugpack.require('bugunit.Test');
+
+
+    //-------------------------------------------------------------------------------
+    // Declare Class
     //-------------------------------------------------------------------------------
 
     /**
-     * @constructs
-     * @param {string} modulePath
-     * @param {BugUnit} bugUnit
+     * @class
+     * @extends {Obj}
      */
-    _constructor: function(modulePath, bugUnit) {
+    var TestScan = Class.extend(Obj, {
 
-        this._super();
+        _name: "bugunit.TestScan",
 
 
         //-------------------------------------------------------------------------------
-        // Private Properties
+        // Constructor
         //-------------------------------------------------------------------------------
 
         /**
-         * @private
-         * @type {BugUnit}
+         * @constructs
+         * @param {string} modulePath
+         * @param {BugUnit} bugUnit
          */
-        this.bugUnit        = bugUnit;
+        _constructor: function(modulePath, bugUnit) {
+
+            this._super();
+
+
+            //-------------------------------------------------------------------------------
+            // Private Properties
+            //-------------------------------------------------------------------------------
+
+            /**
+             * @private
+             * @type {BugUnit}
+             */
+            this.bugUnit        = bugUnit;
+
+            /**
+             * @private
+             * @type {string}
+             */
+            this.modulePath     = modulePath;
+        },
+
+
+        //-------------------------------------------------------------------------------
+        // Public Methods
+        //-------------------------------------------------------------------------------
 
         /**
-         * @private
-         * @type {string}
+         *
          */
-        this.modulePath     = modulePath;
-    },
+        scan: function() {
+            var _this = this;
+            var targetContext   = require('bugpack').context(this.modulePath);
 
+            //NOTE BRN: We must pull BugMeta from the modules context. Otherwise the BugMeta that we pull will not
+            //have any meta info registered.
 
-    //-------------------------------------------------------------------------------
-    // Public Methods
-    //-------------------------------------------------------------------------------
-
-    /**
-     *
-     */
-    scan: function() {
-        var _this = this;
-        var targetContext   = bugpackApi.context(this.modulePath);
-
-        //NOTE BRN: We must pull BugMeta from the modules context. Otherwise the BugMeta that we pull will not
-        //have any meta info registered.
-
-        var BugMeta         = targetContext.require('bugmeta.BugMeta');
-        var bugmeta         = BugMeta.context();
-        var testAnnotations = /** @type {List.<TestAnnotation>} */(bugmeta.getAnnotationsByType("Test"));
-        if (testAnnotations) {
-            testAnnotations.forEach(function(annotation) {
-                var testObject  = annotation.getAnnotationReference();
-                var testName    = annotation.getTestName();
-                var test        = new Test(testName, testObject);
-                _this.bugUnit.registerTest(test);
-            });
+            var BugMeta         = targetContext.require('bugmeta.BugMeta');
+            var bugmeta         = BugMeta.context();
+            var testAnnotations = /** @type {List.<TestAnnotation>} */(bugmeta.getAnnotationsByType("Test"));
+            if (testAnnotations) {
+                testAnnotations.forEach(function(annotation) {
+                    var testObject  = annotation.getAnnotationReference();
+                    var testName    = annotation.getTestName();
+                    var test        = new Test(testName, testObject);
+                    _this.bugUnit.registerTest(test);
+                });
+            }
         }
-    }
+    });
+
+
+    //-------------------------------------------------------------------------------
+    // Exports
+    //-------------------------------------------------------------------------------
+
+    bugpack.export("bugunit.TestScan", TestScan);
 });
-
-
-//-------------------------------------------------------------------------------
-// Exports
-//-------------------------------------------------------------------------------
-
-bugpack.export("bugunit.TestScan", TestScan);

@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2014 airbug Inc. All rights reserved.
+ *
+ * All software, both binary and source contained in this work is the exclusive property
+ * of airbug Inc. Modification, decompilation, disassembly, or any other means of discovering
+ * the source code of this software is prohibited. This work is protected under the United
+ * States copyright law and other international copyright treaties and conventions.
+ */
+
+
 //-------------------------------------------------------------------------------
 // Annotations
 //-------------------------------------------------------------------------------
@@ -10,112 +20,115 @@
 
 
 //-------------------------------------------------------------------------------
-// Common Modules
+// Context
 //-------------------------------------------------------------------------------
 
-var bugpack     = require('bugpack').context();
-
-
-//-------------------------------------------------------------------------------
-// BugPack
-//-------------------------------------------------------------------------------
-
-var Class       = bugpack.require('Class');
-var List        = bugpack.require('List');
-var Obj         = bugpack.require('Obj');
-
-
-//-------------------------------------------------------------------------------
-// Declare Class
-//-------------------------------------------------------------------------------
-
-/**
- * @class
- * @extends {Obj}
- */
-var ReportCard = Class.extend(Obj, {
+require('bugpack').context("*", function(bugpack) {
 
     //-------------------------------------------------------------------------------
-    // Constructor
+    // BugPack
+    //-------------------------------------------------------------------------------
+
+    var Class       = bugpack.require('Class');
+    var List        = bugpack.require('List');
+    var Obj         = bugpack.require('Obj');
+
+
+    //-------------------------------------------------------------------------------
+    // Declare Class
     //-------------------------------------------------------------------------------
 
     /**
-     * @constructs
+     * @class
+     * @extends {Obj}
      */
-    _constructor: function() {
+    var ReportCard = Class.extend(Obj, {
 
-        this._super();
+        _name: "bugunit.ReportCard",
 
 
         //-------------------------------------------------------------------------------
-        // Private Properties
+        // Constructor
         //-------------------------------------------------------------------------------
 
         /**
-         * @private
-         * @type {List.<TestResult>}
+         * @constructs
          */
-        this.testResultList         = new List();
+        _constructor: function() {
+
+            this._super();
+
+
+            //-------------------------------------------------------------------------------
+            // Private Properties
+            //-------------------------------------------------------------------------------
+
+            /**
+             * @private
+             * @type {List.<TestResult>}
+             */
+            this.testResultList         = new List();
+
+            /**
+             * @private
+             * @type {List.<TestResult>}
+             */
+            this.failedTestResultList   = new List();
+        },
+
+
+        //-------------------------------------------------------------------------------
+        // Getters and Setters
+        //-------------------------------------------------------------------------------
 
         /**
-         * @private
-         * @type {List.<TestResult>}
+         * @return {List.<TestResult>}
          */
-        this.failedTestResultList   = new List();
-    },
+        getTestResultList: function() {
+            return this.testResultList;
+        },
+
+        /**
+         * @return {List.<TestResult>}
+         */
+        getFailedTestResultList: function() {
+            return this.failedTestResultList;
+        },
 
 
-    //-------------------------------------------------------------------------------
-    // Getters and Setters
-    //-------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------
+        // Public Methods
+        //-------------------------------------------------------------------------------
 
-    /**
-     * @return {List.<TestResult>}
-     */
-    getTestResultList: function() {
-        return this.testResultList;
-    },
+        /**
+         * @param {TestResult} testResult
+         */
+        addTestResult: function(testResult) {
+            this.testResultList.add(testResult);
+            if (testResult.didTestFail()) {
+                this.failedTestResultList.add(testResult);
+            }
+        },
 
-    /**
-     * @return {List.<TestResult>}
-     */
-    getFailedTestResultList: function() {
-        return this.failedTestResultList;
-    },
+        /**
+         * @return {number}
+         */
+        numberFailedTests: function() {
+            return this.failedTestResultList.getCount();
+        },
 
-
-    //-------------------------------------------------------------------------------
-    // Public Methods
-    //-------------------------------------------------------------------------------
-
-    /**
-     * @param {TestResult} testResult
-     */
-    addTestResult: function(testResult) {
-        this.testResultList.add(testResult);
-        if (testResult.didTestFail()) {
-            this.failedTestResultList.add(testResult);
+        /**
+         * @return {number}
+         */
+        numberPassedTests: function() {
+            return (this.testResultList.getCount() - this.failedTestResultList.getCount());
         }
-    },
+    });
 
-    /**
-     * @return {number}
-     */
-    numberFailedTests: function() {
-        return this.failedTestResultList.getCount();
-    },
 
-    /**
-     * @return {number}
-     */
-    numberPassedTests: function() {
-        return (this.testResultList.getCount() - this.failedTestResultList.getCount());
-    }
+    //-------------------------------------------------------------------------------
+    // Exports
+    //-------------------------------------------------------------------------------
+
+    bugpack.export("bugunit.ReportCard", ReportCard);
 });
-
-
-//-------------------------------------------------------------------------------
-// Exports
-//-------------------------------------------------------------------------------
-
-bugpack.export("bugunit.ReportCard", ReportCard);
