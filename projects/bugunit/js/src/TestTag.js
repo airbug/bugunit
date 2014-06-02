@@ -12,10 +12,10 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Export('bugunit.TestAnnotation')
+//@Export('bugunit.TestTag')
 
 //@Require('Class')
-//@Require('bugmeta.Annotation')
+//@Require('bugmeta.Tag')
 
 
 //-------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ require('bugpack').context("*", function(bugpack) {
     //-------------------------------------------------------------------------------
 
     var Class           = bugpack.require('Class');
-    var Annotation      = bugpack.require('bugmeta.Annotation');
+    var Tag      = bugpack.require('bugmeta.Tag');
 
 
     //-------------------------------------------------------------------------------
@@ -38,11 +38,11 @@ require('bugpack').context("*", function(bugpack) {
 
     /**
      * @class
-     * @extends {Annotation}
+     * @extends {Tag}
      */
-    var TestAnnotation = Class.extend(Annotation, {
+    var TestTag = Class.extend(Tag, {
 
-        _name: "bugunit.TestAnnotation",
+        _name: "bugunit.TestTag",
 
 
         //-------------------------------------------------------------------------------
@@ -96,15 +96,20 @@ require('bugpack').context("*", function(bugpack) {
 
 
     //-------------------------------------------------------------------------------
+    // Static Properties
+    //-------------------------------------------------------------------------------
+
+
+    //-------------------------------------------------------------------------------
     // Static Methods
     //-------------------------------------------------------------------------------
 
     /**
      * @static
-     * @return {TestAnnotation}
+     * @return {TestTag}
      */
-    TestAnnotation.test = function() {
-        return new TestAnnotation();
+    TestTag.test = function() {
+        return new TestTag();
     };
 
 
@@ -112,5 +117,5 @@ require('bugpack').context("*", function(bugpack) {
     // Exports
     //-------------------------------------------------------------------------------
 
-    bugpack.export("bugunit.TestAnnotation", TestAnnotation);
+    bugpack.export("bugunit.TestTag", TestTag);
 });

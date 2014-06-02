@@ -96,10 +96,10 @@ require('bugpack').context("*", function(bugpack) {
 
             var BugMeta         = targetContext.require('bugmeta.BugMeta');
             var bugmeta         = BugMeta.context();
-            var testAnnotations = /** @type {List.<TestAnnotation>} */(bugmeta.getAnnotationsByType("Test"));
-            if (testAnnotations) {
-                testAnnotations.forEach(function(annotation) {
-                    var testObject  = annotation.getAnnotationReference();
+            var testTags = /** @type {List.<TestTag>} */(bugmeta.getTagsByType("Test"));
+            if (testTags) {
+                testTags.forEach(function(annotation) {
+                    var testObject  = annotation.getTagReference();
                     var testName    = annotation.getTestName();
                     var test        = new Test(testName, testObject);
                     _this.bugUnit.registerTest(test);
