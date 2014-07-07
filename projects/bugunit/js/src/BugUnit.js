@@ -22,7 +22,8 @@
 //@Require('bugunit.ReportCard')
 //@Require('bugunit.TestFileLoader')
 //@Require('bugunit.TestRunner')
-//@Require('bugunit.TestScan')
+//@Require('bugunit.TestTagProcessor')
+//@Require('bugunit.TestTagScan')
 
 
 //-------------------------------------------------------------------------------
@@ -43,7 +44,8 @@ require('bugpack').context("*", function(bugpack) {
     var ReportCard              = bugpack.require('bugunit.ReportCard');
     var TestFileLoader          = bugpack.require('bugunit.TestFileLoader');
     var TestRunner              = bugpack.require('bugunit.TestRunner');
-    var TestScan                = bugpack.require('bugunit.TestScan');
+    var TestTagProcessor        = bugpack.require('bugunit.TestTagProcessor');
+    var TestTagScan             = bugpack.require('bugunit.TestTagScan');
 
 
     //-------------------------------------------------------------------------------
@@ -185,9 +187,16 @@ require('bugpack').context("*", function(bugpack) {
             var testFileLoader  = new TestFileLoader(testPath);
             testFileLoader.load(function(throwable) {
                 if (!throwable) {
-                    var testScan    = new TestScan(testPath, _this);
+                    var targetContext   = require('bugpack').context(testPath);
+
+                    //NOTE BRN: We must pull BugMeta from the modules context. Otherwise the BugMeta that we pull will not
+                    //have any meta info registered.
+
+                    var BugMeta         = targetContext.require('bugmeta.BugMeta');
+                    var metaContext     = BugMeta.context();
+                    var testTagScan     = new TestTagScan(metaContext, new TestTagProcessor(_this));
                     try {
-                        testScan.scan();
+                        testTagScan.scanAll();
                     } catch(caughtThrowable) {
                         throwable = caughtThrowable;
                     }

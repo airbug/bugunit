@@ -12,11 +12,11 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Export('bugunit.TestScan')
+//@Export('bugunit.TestTagProcessor')
 
 //@Require('Class')
 //@Require('Obj')
-//@Require('bugmeta.BugMeta')
+//@Require('bugmeta.ITagProcessor')
 //@Require('bugunit.Test')
 
 
@@ -32,6 +32,7 @@ require('bugpack').context("*", function(bugpack) {
 
     var Class           = bugpack.require('Class');
     var Obj             = bugpack.require('Obj');
+    var ITagProcessor   = bugpack.require('bugmeta.ITagProcessor');
     var Test            = bugpack.require('bugunit.Test');
 
 
@@ -42,10 +43,11 @@ require('bugpack').context("*", function(bugpack) {
     /**
      * @class
      * @extends {Obj}
+     * @implements {ITagProcessor}
      */
-    var TestScan = Class.extend(Obj, {
+    var TestTagProcessor = Class.extend(Obj, {
 
-        _name: "bugunit.TestScan",
+        _name: "bugunit.TestTagScan",
 
 
         //-------------------------------------------------------------------------------
@@ -54,10 +56,9 @@ require('bugpack').context("*", function(bugpack) {
 
         /**
          * @constructs
-         * @param {string} modulePath
          * @param {BugUnit} bugUnit
          */
-        _constructor: function(modulePath, bugUnit) {
+        _constructor: function(bugUnit) {
 
             this._super();
 
@@ -71,47 +72,58 @@ require('bugpack').context("*", function(bugpack) {
              * @type {BugUnit}
              */
             this.bugUnit        = bugUnit;
-
-            /**
-             * @private
-             * @type {string}
-             */
-            this.modulePath     = modulePath;
         },
 
 
         //-------------------------------------------------------------------------------
-        // Public Methods
+        // ITagProcessor Implementation
         //-------------------------------------------------------------------------------
 
         /**
-         *
+         * @param {Tag} tag
          */
-        scan: function() {
-            var _this = this;
-            var targetContext   = require('bugpack').context(this.modulePath);
+        process: function(tag) {
+            this.processTestTag(/** @type {TestTag} */(tag));
+        },
 
-            //NOTE BRN: We must pull BugMeta from the modules context. Otherwise the BugMeta that we pull will not
-            //have any meta info registered.
 
-            var BugMeta         = targetContext.require('bugmeta.BugMeta');
-            var bugmeta         = BugMeta.context();
-            var testTags = /** @type {List.<TestTag>} */(bugmeta.getTagsByType("Test"));
-            if (testTags) {
-                testTags.forEach(function(annotation) {
-                    var testObject  = annotation.getTagReference();
-                    var testName    = annotation.getTestName();
-                    var test        = new Test(testName, testObject);
-                    _this.bugUnit.registerTest(test);
-                });
-            }
+        //-------------------------------------------------------------------------------
+        // Private Methods
+        //-------------------------------------------------------------------------------
+
+        /**
+         * @private
+         * @param {string} testName
+         * @param {{}} testObject
+         * @return {Test}
+         */
+        factoryTest: function(testName, testObject) {
+            return new Test(testName, testObject);
+        },
+
+        /**
+         * @private
+         * @param {TestTag} testTag
+         */
+        processTestTag: function(testTag) {
+            var testObject  = testTag.getTagReference();
+            var testName    = testTag.getTestName();
+            var test        = this.factoryTest(testName, testObject);
+            this.bugUnit.registerTest(test);
         }
     });
+
+
+    //-------------------------------------------------------------------------------
+    // Implement Interfaces
+    //-------------------------------------------------------------------------------
+
+    Class.implement(TestTagProcessor, ITagProcessor);
 
 
     //-------------------------------------------------------------------------------
     // Exports
     //-------------------------------------------------------------------------------
 
-    bugpack.export("bugunit.TestScan", TestScan);
+    bugpack.export("bugunit.TestTagProcessor", TestTagProcessor);
 });
