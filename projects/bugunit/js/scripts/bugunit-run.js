@@ -16,7 +16,7 @@
 
 require('bugpack').loadContext(module, function(error, bugpack) {
     if (!error) {
-        bugpack.loadExports(["bugtrace.BugTrace", "bugunit.BugUnit"], function(error) {
+        bugpack.loadExports(["Tracer", "bugunit.BugUnit"], function(error) {
             if (!error) {
 
                 //-------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ require('bugpack').loadContext(module, function(error, bugpack) {
                 // BugPack
                 //-------------------------------------------------------------------------------
 
-                var BugTrace    = bugpack.require('bugtrace.BugTrace');
+                var Tracer    = bugpack.require('Tracer');
                 var BugUnit     = bugpack.require('bugunit.BugUnit');
 
 
@@ -102,7 +102,7 @@ require('bugpack').loadContext(module, function(error, bugpack) {
                                 bugUnit.getTestRunnerSet().forEach(function (testRunner) {
                                     if (!testRunner.isCompleted()) {
                                         console.log("Test '" + testRunner.getTest().getName() + "' did not complete");
-                                        var stack = BugTrace.getNamedStack(testRunner.getTest().getName());
+                                        var stack = Tracer.getNamedStack(testRunner.getTest().getName());
                                         if (stack) {
                                             console.log("Last stack: ", stack);
                                         }

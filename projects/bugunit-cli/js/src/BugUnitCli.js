@@ -16,9 +16,9 @@
 
 //@Require('Bug')
 //@Require('Class')
+//@Require('Flows')
 //@Require('Obj')
 //@Require('Proxy')
-//@Require('bugflow.BugFlow')
 //@Require('npm.Npm')
 
 
@@ -41,9 +41,9 @@ require('bugpack').context("*", function(bugpack) {
 
     var Bug             = bugpack.require('Bug');
     var Class           = bugpack.require('Class');
+    var Flows           = bugpack.require('Flows');
     var Obj             = bugpack.require('Obj');
     var Proxy           = bugpack.require('Proxy');
-    var BugFlow         = bugpack.require('bugflow.BugFlow');
     var Npm             = bugpack.require('npm.Npm');
 
 
@@ -51,8 +51,8 @@ require('bugpack').context("*", function(bugpack) {
     // Simplify References
     //-------------------------------------------------------------------------------
 
-    var $series         = BugFlow.$series;
-    var $task           = BugFlow.$task;
+    var $series         = Flows.$series;
+    var $task           = Flows.$task;
 
 
     //-------------------------------------------------------------------------------

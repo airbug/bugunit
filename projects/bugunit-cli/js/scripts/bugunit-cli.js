@@ -14,7 +14,7 @@
 
 require("bugpack").loadContext(module, function(error, bugpack) {
     if (!error) {
-        bugpack.loadExport("buganno.AnnotationParserProcess", function(error) {
+        bugpack.loadExport("bugunit.BugUnitCli", function(error) {
             if (!error) {
 
                 //-------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ require("bugpack").loadContext(module, function(error, bugpack) {
 
                 //TODO BRN: Add ability to target specific test OR a test suite.
 
-                BugUnitCli.start(targetModulePath, function(error) {
+                BugUnitCli.start(targetModulePath, {checkCoverage: true}, function(error) {
                     if (error) {
                         console.log(error.message);
                         console.log(error.stack);

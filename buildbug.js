@@ -21,6 +21,7 @@ var buildbug            = require("buildbug");
 
 var buildProject        = buildbug.buildProject;
 var buildProperties     = buildbug.buildProperties;
+var buildScript         = buildbug.buildScript;
 var buildTarget         = buildbug.buildTarget;
 var enableModule        = buildbug.enableModule;
 var series              = buildbug.series;
@@ -34,6 +35,7 @@ var targetTask          = buildbug.targetTask;
 var aws                 = enableModule("aws");
 var bugpack             = enableModule("bugpack");
 var core                = enableModule("core");
+var lintbug             = enableModule("lintbug");
 var nodejs              = enableModule("nodejs");
 
 
@@ -41,9 +43,9 @@ var nodejs              = enableModule("nodejs");
 // Values
 //-------------------------------------------------------------------------------
 
-var version             = "0.1.2";
+var version             = "0.1.3";
 var dependencies        = {
-    bugpack: "0.1.12",
+    bugpack: "0.1.14",
     npm: "1.4.x",
     tar: "0.1.x"
 };
@@ -67,11 +69,10 @@ buildProperties({
             dependencies: dependencies
         },
         sourcePaths: [
+            "../buganno/projects/buganno/js/src",
             "../bugcore/projects/bugcore/js/src",
-            "../bugflow/projects/bugflow/js/src",
             "../bugfs/projects/bugfs/js/src",
             "../bugjs/projects/npm/js/src",
-            '../bugtrace/projects/bugtrace/js/src',
             "./projects/bugunit-cli/js/src"
         ],
         scriptPaths: [
@@ -80,6 +81,17 @@ buildProperties({
         ],
         binPaths: [
             "./projects/bugunit-cli/bin"
+        ]
+    },
+    lint: {
+        targetPaths: [
+            "."
+        ],
+        ignorePatterns: [
+            ".*\\.buildbug$",
+            ".*\\.bugunit$",
+            ".*\\.git$",
+            ".*node_modules$"
         ]
     }
 });
@@ -107,12 +119,28 @@ buildTarget("local").buildFlow(
         // old source files are removed. We should figure out a better way of doing that.
 
         targetTask("clean"),
+        targetTask('lint', {
+            properties: {
+                targetPaths: buildProject.getProperty("lint.targetPaths"),
+                ignores: buildProject.getProperty("lint.ignorePatterns"),
+                lintTasks: [
+                    "cleanupExtraSpacingAtEndOfLines",
+                    "ensureNewLineEnding",
+                    "indentEqualSignsForPreClassVars",
+                    "orderBugpackRequires",
+                    "orderRequireAnnotations",
+                    "updateCopyright"
+                ]
+            }
+        }),
         targetTask("createNodePackage", {
             properties: {
-                binPaths: buildProject.getProperty("node.binPaths"),
                 packageJson: buildProject.getProperty("node.packageJson"),
-                scriptPaths: buildProject.getProperty("node.scriptPaths"),
-                sourcePaths: buildProject.getProperty("node.sourcePaths")
+                packagePaths: {
+                    "./bin": buildProject.getProperty("node.binPaths"),
+                    "./lib": buildProject.getProperty("node.sourcePaths"),
+                    "./scripts": buildProject.getProperty("node.scriptPaths")
+                }
             }
         }),
         targetTask('generateBugPackRegistry', {
@@ -162,12 +190,28 @@ buildTarget("prod").buildFlow(
         // old source files are removed. We should figure out a better way of doing that.
 
         targetTask("clean"),
+        targetTask('lint', {
+            properties: {
+                targetPaths: buildProject.getProperty("lint.targetPaths"),
+                ignores: buildProject.getProperty("lint.ignorePatterns"),
+                lintTasks: [
+                    "cleanupExtraSpacingAtEndOfLines",
+                    "ensureNewLineEnding",
+                    "indentEqualSignsForPreClassVars",
+                    "orderBugpackRequires",
+                    "orderRequireAnnotations",
+                    "updateCopyright"
+                ]
+            }
+        }),
         targetTask("createNodePackage", {
             properties: {
-                binPaths: buildProject.getProperty("node.binPaths"),
                 packageJson: buildProject.getProperty("node.packageJson"),
-                scriptPaths: buildProject.getProperty("node.scriptPaths"),
-                sourcePaths: buildProject.getProperty("node.sourcePaths")
+                packagePaths: {
+                    "./bin": buildProject.getProperty("node.binPaths"),
+                    "./lib": buildProject.getProperty("node.sourcePaths"),
+                    "./scripts": buildProject.getProperty("node.scriptPaths")
+                }
             }
         }),
         targetTask('generateBugPackRegistry', {
@@ -205,3 +249,17 @@ buildTarget("prod").buildFlow(
         })
     ])
 );
+
+
+//-------------------------------------------------------------------------------
+// Build Scripts
+//-------------------------------------------------------------------------------
+
+buildScript({
+    dependencies: [
+        "bugcore",
+        "bugflow",
+        "bugfs"
+    ],
+    script: "./lintbug.js"
+});

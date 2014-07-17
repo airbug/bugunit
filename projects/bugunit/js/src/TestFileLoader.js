@@ -16,10 +16,10 @@
 
 //@Require('Class')
 //@Require('Exception')
+//@Require('Flows')
 //@Require('Obj')
 //@Require('Set')
 //@Require('buganno.BugAnno')
-//@Require('bugflow.BugFlow')
 //@Require('bugfs.FileFinder')
 
 
@@ -33,23 +33,22 @@ require('bugpack').context("*", function(bugpack) {
     // BugPack
     //-------------------------------------------------------------------------------
 
-    var Class                   = bugpack.require('Class');
-    var Exception               = bugpack.require('Exception');
-    var Obj                     = bugpack.require('Obj');
-    var Set                     = bugpack.require('Set');
-    var BugAnno                 = bugpack.require('buganno.BugAnno');
-    var BugFlow                 = bugpack.require('bugflow.BugFlow');
-    var FileFinder              = bugpack.require('bugfs.FileFinder');
+    var Class       = bugpack.require('Class');
+    var Exception   = bugpack.require('Exception');
+    var Flows       = bugpack.require('Flows');
+    var Obj         = bugpack.require('Obj');
+    var Set         = bugpack.require('Set');
+    var BugAnno     = bugpack.require('buganno.BugAnno');
+    var FileFinder  = bugpack.require('bugfs.FileFinder');
 
 
     //-------------------------------------------------------------------------------
     // Simplify References
     //-------------------------------------------------------------------------------
 
-    var $iterableParallel       = BugFlow.$iterableParallel;
-    var $parallel               = BugFlow.$parallel;
-    var $series                 = BugFlow.$series;
-    var $task                   = BugFlow.$task;
+    var $parallel   = Flows.$parallel;
+    var $series     = Flows.$series;
+    var $task       = Flows.$task;
 
 
     //-------------------------------------------------------------------------------

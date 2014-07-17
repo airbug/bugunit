@@ -17,9 +17,9 @@
 //@Require('Class')
 //@Require('List')
 //@require('Obj')
+//@Require('Tracer')
 //@Require('bugunit.Test')
 //@Require('bugunit.TestResult')
-//@Require('bugtrace.BugTrace')
 
 
 //-------------------------------------------------------------------------------
@@ -32,26 +32,26 @@ require('bugpack').context("*", function(bugpack) {
     // Common Modules
     //-------------------------------------------------------------------------------
 
-    var domain          = require('domain');
+    var domain      = require('domain');
 
 
     //-------------------------------------------------------------------------------
     // BugPack
     //-------------------------------------------------------------------------------
 
-    var Class           = bugpack.require('Class');
-    var List            = bugpack.require('List');
-    var Obj             = bugpack.require('Obj');
-    var Test            = bugpack.require('bugunit.Test');
-    var TestResult      = bugpack.require('bugunit.TestResult');
-    var BugTrace        = bugpack.require('bugtrace.BugTrace');
+    var Class       = bugpack.require('Class');
+    var List        = bugpack.require('List');
+    var Obj         = bugpack.require('Obj');
+    var Tracer      = bugpack.require('Tracer');
+    var Test        = bugpack.require('bugunit.Test');
+    var TestResult  = bugpack.require('bugunit.TestResult');
 
 
     //-------------------------------------------------------------------------------
     // Simplify References
     //-------------------------------------------------------------------------------
 
-    var $name           = BugTrace.$name;
+    var $name       = Tracer.$name;
 
 
     //-------------------------------------------------------------------------------

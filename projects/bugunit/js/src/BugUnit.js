@@ -15,9 +15,9 @@
 //@Export('bugunit.BugUnit')
 
 //@Require('Class')
+//@Require('Flows')
 //@Require('Obj')
 //@Require('Set')
-//@Require('bugflow.BugFlow')
 //@Require('bugfs.BugFs')
 //@Require('bugunit.ReportCard')
 //@Require('bugunit.TestFileLoader')
@@ -36,25 +36,25 @@ require('bugpack').context("*", function(bugpack) {
     // BugPack
     //-------------------------------------------------------------------------------
 
-    var Class                   = bugpack.require('Class');
-    var Obj                     = bugpack.require('Obj');
-    var Set                     = bugpack.require('Set');
-    var BugFlow                 = bugpack.require('bugflow.BugFlow');
-    var BugFs                   = bugpack.require('bugfs.BugFs');
-    var ReportCard              = bugpack.require('bugunit.ReportCard');
-    var TestFileLoader          = bugpack.require('bugunit.TestFileLoader');
-    var TestRunner              = bugpack.require('bugunit.TestRunner');
-    var TestTagProcessor        = bugpack.require('bugunit.TestTagProcessor');
-    var TestTagScan             = bugpack.require('bugunit.TestTagScan');
+    var Class               = bugpack.require('Class');
+    var Flows               = bugpack.require('Flows');
+    var Obj                 = bugpack.require('Obj');
+    var Set                 = bugpack.require('Set');
+    var BugFs               = bugpack.require('bugfs.BugFs');
+    var ReportCard          = bugpack.require('bugunit.ReportCard');
+    var TestFileLoader      = bugpack.require('bugunit.TestFileLoader');
+    var TestRunner          = bugpack.require('bugunit.TestRunner');
+    var TestTagProcessor    = bugpack.require('bugunit.TestTagProcessor');
+    var TestTagScan         = bugpack.require('bugunit.TestTagScan');
 
 
     //-------------------------------------------------------------------------------
     // Simplify References
     //-------------------------------------------------------------------------------
 
-    var $forEachParallel        = BugFlow.$forEachParallel;
-    var $series                 = BugFlow.$series;
-    var $task                   = BugFlow.$task;
+    var $forEachParallel    = Flows.$forEachParallel;
+    var $series             = Flows.$series;
+    var $task               = Flows.$task;
 
 
     //-------------------------------------------------------------------------------
