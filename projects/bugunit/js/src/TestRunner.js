@@ -16,7 +16,7 @@
 
 //@Require('Class')
 //@Require('List')
-//@require('Obj')
+//@Require('Obj')
 //@Require('Tracer')
 //@Require('bugunit.Test')
 //@Require('bugunit.TestResult')

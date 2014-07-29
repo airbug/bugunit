@@ -16,7 +16,7 @@
 
 //@Require('Class')
 //@Require('Obj')
-//@require('bugdouble.FunctionSpy')
+//@Require('bugdouble.FunctionSpy')
 
 
 //-------------------------------------------------------------------------------
