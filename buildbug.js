@@ -70,7 +70,7 @@ buildProperties({
         },
         sourcePaths: [
             "../buganno/projects/buganno/js/src",
-            "../bugcore/projects/bugcore/js/src",
+            "../bugcore/libraries/bugcore/js/src",
             "../bugfs/projects/bugfs/js/src",
             "../bugjs/projects/npm/js/src",
             "./projects/bugunit-cli/js/src"
