@@ -19,7 +19,7 @@
 //@Require('Flows')
 //@Require('Obj')
 //@Require('Proxy')
-//@Require('npm.Npm')
+//@Require('bugnpm.Npm')
 
 
 //-------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ require('bugpack').context("*", function(bugpack) {
     var Flows           = bugpack.require('Flows');
     var Obj             = bugpack.require('Obj');
     var Proxy           = bugpack.require('Proxy');
-    var Npm             = bugpack.require('npm.Npm');
+    var Npm             = bugpack.require('bugnpm.Npm');
 
 
     //-------------------------------------------------------------------------------
@@ -137,17 +137,17 @@ require('bugpack').context("*", function(bugpack) {
                 $task(function(flow) {
                     var childProcess = null;
                     if (checkCoverage) {
-                        //TODO BRN: This binary coverage is a bit hacky. Doesn't protect from version change and not very easy to extract results.
+                        //TODO BRN: This binary coverage is a bit hacky. Doesn't protect from version change of istanbul, requires the istanbul binary to be installed, and it's not very easy to extract results of the coverage.
                         var args = [];
                         args.push("cover");
                         args.push("--root");
                         args.push(targetModuleInstalledPath + "/lib");
                         args.push("--dir");
                         args.push(_this.installPath);
-                        args.push(targetModuleInstalledPath + "/scripts/bugunit-run.js");
+                        args.push(targetModuleInstalledPath + "/test/scripts/bugunit-run.js");
                         childProcess = child_process.spawn('istanbul', args, {cwd: targetModuleInstalledPath, env: process.env});
                     } else {
-                        childProcess = child_process.spawn('node', [targetModuleInstalledPath + "/scripts/bugunit-run.js"], {cwd: targetModuleInstalledPath, env: process.env});
+                        childProcess = child_process.spawn('node', [targetModuleInstalledPath + "/test/scripts/bugunit-run.js"], {cwd: targetModuleInstalledPath, env: process.env});
                     }
                     childProcess.stdout.setEncoding('utf8');
                     childProcess.stdout.on('data', function (data) {
