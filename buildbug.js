@@ -1,10 +1,7 @@
 /*
  * Copyright (c) 2014 airbug Inc. All rights reserved.
  *
- * All software, both binary and source contained in this work is the exclusive property
- * of airbug Inc. Modification, decompilation, disassembly, or any other means of discovering
- * the source code of this software is prohibited. This work is protected under the United
- * States copyright law and other international copyright treaties and conventions.
+ * bugunit may be freely distributed under the MIT license.
  */
 
 
@@ -24,6 +21,7 @@ var buildProperties     = buildbug.buildProperties;
 var buildScript         = buildbug.buildScript;
 var buildTarget         = buildbug.buildTarget;
 var enableModule        = buildbug.enableModule;
+var parallel            = buildbug.parallel;
 var series              = buildbug.series;
 var targetTask          = buildbug.targetTask;
 
@@ -34,6 +32,7 @@ var targetTask          = buildbug.targetTask;
 
 var aws                 = enableModule("aws");
 var bugpack             = enableModule("bugpack");
+var bugunit             = enableModule('bugunit');
 var core                = enableModule("core");
 var lintbug             = enableModule("lintbug");
 var nodejs              = enableModule("nodejs");
@@ -92,6 +91,7 @@ buildProperties({
         ],
         readmePath: "./README.md",
         scriptPaths: [
+            "../buganno/libraries/buganno/js/scripts",
             "./projects/bugunit-cli/js/scripts"
         ],
         sourcePaths: [
@@ -126,7 +126,6 @@ buildProperties({
                 "../bugyarn/libraries/bugyarn/js/src"
             ],
             scriptPaths: [
-                "../buganno/libraries/buganno/js/scripts",
                 "../bugunit/libraries/bugunit/js/scripts"
             ],
             testPaths: [

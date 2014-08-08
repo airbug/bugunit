@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2014 airbug inc. http://airbug.com
+ * Copyright (c) 2014 airbug Inc. All rights reserved.
  *
- * bugcore may be freely distributed under the MIT license.
+ * bugunit may be freely distributed under the MIT license.
  */
 
 
@@ -27,18 +27,18 @@ require('bugpack').context("*", function(bugpack) {
     // BugPack
     //-------------------------------------------------------------------------------
 
-    var Class       = bugpack.require('Class');
-    var BugMeta     = bugpack.require('bugmeta.BugMeta');
-    var AssertionResult      = bugpack.require('bugunit.AssertionResult');
-    var TestTag     = bugpack.require('bugunit.TestTag');
+    var Class               = bugpack.require('Class');
+    var BugMeta             = bugpack.require('bugmeta.BugMeta');
+    var AssertionResult     = bugpack.require('bugunit.AssertionResult');
+    var TestTag             = bugpack.require('bugunit.TestTag');
 
 
     //-------------------------------------------------------------------------------
     // Simplify References
     //-------------------------------------------------------------------------------
 
-    var bugmeta     = BugMeta.context();
-    var test        = TestTag.test;
+    var bugmeta             = BugMeta.context();
+    var test                = TestTag.test;
 
 
     //-------------------------------------------------------------------------------
@@ -123,7 +123,7 @@ require('bugpack').context("*", function(bugpack) {
         test: function(test) {
             test.assertEqual(this.testPassedAssertionResult.didAssertionFail(), false,
                 "Assert AssertionResult#didAssertionFail returns false for passed assertion");
-            test.assertEqual(this.testNotPassedAssertionResult.didAssertionFail(), false,
+            test.assertEqual(this.testNotPassedAssertionResult.didAssertionFail(), true,
                 "Assert AssertionResult#didAssertionFail returns true for NOT passed assertion");
         }
     };
