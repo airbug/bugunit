@@ -64,13 +64,19 @@ require('bugpack').context("*", function(bugpack) {
              * @private
              * @type {List.<TestResult>}
              */
-            this.testResultList         = new List();
+            this.failedTestResultList       = new List();
 
             /**
              * @private
              * @type {List.<TestResult>}
              */
-            this.failedTestResultList   = new List();
+            this.incompleteTestResultList   = new List();
+
+            /**
+             * @private
+             * @type {List.<TestResult>}
+             */
+            this.testResultList             = new List();
         },
 
 
@@ -81,15 +87,22 @@ require('bugpack').context("*", function(bugpack) {
         /**
          * @return {List.<TestResult>}
          */
-        getTestResultList: function() {
-            return this.testResultList;
+        getFailedTestResultList: function() {
+            return this.failedTestResultList;
         },
 
         /**
          * @return {List.<TestResult>}
          */
-        getFailedTestResultList: function() {
-            return this.failedTestResultList;
+        getIncompleteTestResultList: function() {
+            return this.incompleteTestResultList;
+        },
+
+        /**
+         * @return {List.<TestResult>}
+         */
+        getTestResultList: function() {
+            return this.testResultList;
         },
 
 
@@ -105,6 +118,9 @@ require('bugpack').context("*", function(bugpack) {
             if (testResult.didTestFail()) {
                 this.failedTestResultList.add(testResult);
             }
+            if (!testResult.didTestComplete()) {
+                this.incompleteTestResultList.add(testResult);
+            }
         },
 
         /**
@@ -112,6 +128,13 @@ require('bugpack').context("*", function(bugpack) {
          */
         numberFailedTests: function() {
             return this.failedTestResultList.getCount();
+        },
+
+        /**
+         * @return {number}
+         */
+        numberIncompleteTests: function() {
+            return this.incompleteTestResultList.getCount();
         },
 
         /**

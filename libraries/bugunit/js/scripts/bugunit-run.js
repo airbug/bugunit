@@ -42,6 +42,10 @@ require('bugpack').loadContext(module, function(error, bugpack) {
                 var processReportCard = function(reportCard, callback) {
                     console.log("Number of PASSED tests: " + reportCard.numberPassedTests());
                     console.log("Number of FAILED tests: " + reportCard.numberFailedTests());
+                    if (reportCard.numberIncompleteTests() > 0) {
+                        console.log("Number of INCOMPLETE tests: " + reportCard.numberIncompleteTests());
+                        console.log("Some tests never completed. This is likely an async test that is not completing.");
+                    }
 
                     var errorOccurred = false;
                     var testsFailed = false;
@@ -59,6 +63,15 @@ require('bugpack').loadContext(module, function(error, bugpack) {
                             console.log(testResult.getError().stack);
                         }
                     });
+
+                    reportCard.getIncompleteTestResultList().forEach(function (testResult) {
+                        console.log("Test '" + testResult.getTest().getName() + "' did not complete");
+                        var stack = Tracer.getNamedStack(testResult.getTest().getName());
+                        if (stack) {
+                            console.log("Last stack: ", stack);
+                        }
+                    });
+
                     if (errorOccurred) {
                         callback(new Error("Error occurred while running tests."));
                     } else if (testsFailed) {
@@ -68,11 +81,8 @@ require('bugpack').loadContext(module, function(error, bugpack) {
                     }
                 };
 
-                var reportCardReceived = false;
-                var bugUnit = new BugUnit();
-                bugUnit.start(process.cwd(), function(throwable, reportCard) {
+                BugUnit.startAllTestsOnPath(process.cwd(), function(throwable, reportCard) {
                     if (!throwable) {
-                        reportCardReceived = true;
                         processReportCard(reportCard, function(throwable) {
                             if (throwable) {
                                 console.log(throwable.message);
@@ -86,35 +96,6 @@ require('bugpack').loadContext(module, function(error, bugpack) {
                         process.exit(1);
                     }
                 });
-
-                process.on('exit', function() {
-
-                    //TODO BRN: Improve this find to find the tests that did not complete
-
-                    if (!reportCardReceived) {
-                        var reportCard = bugUnit.getReportCard();
-                        processReportCard(reportCard, function(throwable) {
-                            if (!throwable) {
-                                console.log("Some tests never completed. This is likely an async test that is not completing.");
-                                bugUnit.getTestRunnerSet().forEach(function (testRunner) {
-                                    if (!testRunner.isCompleted()) {
-                                        console.log("Test '" + testRunner.getTest().getName() + "' did not complete");
-                                        var stack = Tracer.getNamedStack(testRunner.getTest().getName());
-                                        if (stack) {
-                                            console.log("Last stack: ", stack);
-                                        }
-                                    }
-                                });
-                                process.exit(1);
-                            } else {
-                                console.log(throwable.message);
-                                console.log(throwable.stack);
-                                process.exit(1);
-                            }
-                        });
-                    }
-                });
-
             } else {
                 console.log(error.message);
                 console.log(error.stack);

@@ -12,6 +12,7 @@
 //@Export('bugunit.TestRunner')
 
 //@Require('Class')
+//@Require('Exception')
 //@Require('List')
 //@Require('Obj')
 //@Require('Tracer')
@@ -37,6 +38,7 @@ require('bugpack').context("*", function(bugpack) {
     //-------------------------------------------------------------------------------
 
     var Class       = bugpack.require('Class');
+    var Exception   = bugpack.require('Exception');
     var List        = bugpack.require('List');
     var Obj         = bugpack.require('Obj');
     var Tracer      = bugpack.require('Tracer');
@@ -84,33 +86,39 @@ require('bugpack').context("*", function(bugpack) {
 
             /**
              * @private
-             * @type {*}
+             * @type {function(Throwable, TestResult=)}
              */
-            this.callback       = null;
+            this.callback           = null;
 
             /**
              * @private
              * @type {boolean}
              */
-            this.completed      = false;
+            this.completed          = false;
 
             /**
              * @private
              * @type {boolean}
              */
-            this.logResults     = logResults;
+            this.forceFinalizing    = false;
+
+            /**
+             * @private
+             * @type {boolean}
+             */
+            this.logResults         = logResults;
 
             /**
              * @private
              * @type {Test}
              */
-            this.test           = test;
+            this.test               = test;
 
             /**
              * @private
              * @type {TestResult}
              */
-            this.testResult     = new TestResult(test);
+            this.testResult         = new TestResult(test);
         },
 
 
@@ -143,7 +151,19 @@ require('bugpack').context("*", function(bugpack) {
         //-------------------------------------------------------------------------------
 
         /**
-         * @param {function(Error, TestResult)} callback
+         *
+         */
+        forceFinalizeTest: function() {
+            if (!this.forceFinalizing) {
+                this.forceFinalizing = true;
+                this.finalizeTest();
+            } else {
+                throw new Exception("IllegalState", {}, "Test has already been forced finalized");
+            }
+        },
+
+        /**
+         * @param {function(Throwable, TestResult=)} callback
          */
         runTest: function(callback) {
             var _this = this;
@@ -172,6 +192,7 @@ require('bugpack').context("*", function(bugpack) {
          */
         addTestListeners: function() {
             this.test.addEventListener(Test.EventType.ASSERTION_RESULT, this.hearAssertionResult, this);
+            this.test.addEventListener(Test.EventType.FINALIZE_COMPLETE, this.hearFinalizeComplete, this);
             this.test.addEventListener(Test.EventType.SETUP_COMPLETE, this.hearSetupComplete, this);
             this.test.addEventListener(Test.EventType.TEAR_DOWN_COMPLETE, this.hearTearDownComplete, this);
             this.test.addEventListener(Test.EventType.TEST_ERROR, this.hearTestError, this);
@@ -185,8 +206,22 @@ require('bugpack').context("*", function(bugpack) {
             if (this.logResults) {
                 console.log("Completed test [" + this.test.getName() + "]");
             }
-            this.completed = true;
+            if (!this.forceFinalizing) {
+                this.completed = true;
+            }
             this.callback(null, this.testResult);
+        },
+
+        /**
+         * @private
+         */
+        finalizeTest: function() {
+            try {
+                $name(this.test.getName());
+                this.test.finalize();
+            } catch(error) {
+                this.test.error(error);
+            }
         },
 
         /**
@@ -195,8 +230,7 @@ require('bugpack').context("*", function(bugpack) {
          */
         processError: function(error) {
             this.testResult.setError(error);
-            this.removeTestListeners();
-            this.complete();
+            this.finalizeTest();
         },
 
         /**
@@ -204,6 +238,7 @@ require('bugpack').context("*", function(bugpack) {
          */
         removeTestListeners: function() {
             this.test.removeEventListener(Test.EventType.ASSERTION_RESULT, this.hearAssertionResult, this);
+            this.test.removeEventListener(Test.EventType.FINALIZE_COMPLETE, this.hearFinalizeComplete, this);
             this.test.removeEventListener(Test.EventType.SETUP_COMPLETE, this.hearSetupComplete, this);
             this.test.removeEventListener(Test.EventType.TEAR_DOWN_COMPLETE, this.hearTearDownComplete, this);
             this.test.removeEventListener(Test.EventType.TEST_ERROR, this.hearTestError, this);
@@ -266,6 +301,14 @@ require('bugpack').context("*", function(bugpack) {
          * @private
          * @param {Event} event
          */
+        hearFinalizeComplete: function(event) {
+            this.tearDownTest();
+        },
+
+        /**
+         * @private
+         * @param {Event} event
+         */
         hearSetupComplete: function(event) {
             this.testTest();
         },
@@ -284,7 +327,7 @@ require('bugpack').context("*", function(bugpack) {
          * @param {Event} event
          */
         hearTestComplete: function(event) {
-            this.tearDownTest();
+            this.finalizeTest();
         },
 
         /**

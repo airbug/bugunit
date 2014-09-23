@@ -69,6 +69,12 @@ require('bugpack').context("*", function(bugpack) {
 
             /**
              * @private
+             * @type {boolean}
+             */
+            this.completed                  = false;
+
+            /**
+             * @private
              * @type {Throwable}
              */
             this.error                      = null;
@@ -90,6 +96,13 @@ require('bugpack').context("*", function(bugpack) {
         //-------------------------------------------------------------------------------
         // Getters and Setters
         //-------------------------------------------------------------------------------
+
+        /**
+         * @return {boolean}
+         */
+        getCompleted: function() {
+            return this.completed;
+        },
 
         /**
          * @return {Throwable}
@@ -123,6 +136,13 @@ require('bugpack').context("*", function(bugpack) {
         //-------------------------------------------------------------------------------
         // Convenience Methods
         //-------------------------------------------------------------------------------
+
+        /**
+         * @return {boolean}
+         */
+        didTestComplete: function() {
+            return this.completed;
+        },
 
         /**
          * @return {boolean}

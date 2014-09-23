@@ -14,11 +14,12 @@
 //@Require('Class')
 //@Require('Flows')
 //@Require('Obj')
-//@Require('Set')
+//@Require('Proxy')
 //@Require('bugfs.BugFs')
-//@Require('bugunit.ReportCard')
+//@Require('bugunit.TestBatch')
+//@Require('bugunit.TestBatchProcessor')
 //@Require('bugunit.TestFileLoader')
-//@Require('bugunit.TestRunner')
+//@Require('bugunit.TestRegistry')
 //@Require('bugunit.TestTagProcessor')
 //@Require('bugunit.TestTagScan')
 
@@ -36,11 +37,12 @@ require('bugpack').context("*", function(bugpack) {
     var Class               = bugpack.require('Class');
     var Flows               = bugpack.require('Flows');
     var Obj                 = bugpack.require('Obj');
-    var Set                 = bugpack.require('Set');
+    var Proxy               = bugpack.require('Proxy');
     var BugFs               = bugpack.require('bugfs.BugFs');
-    var ReportCard          = bugpack.require('bugunit.ReportCard');
+    var TestBatch           = bugpack.require('bugunit.TestBatch');
+    var TestBatchProcessor  = bugpack.require('bugunit.TestBatchProcessor');
     var TestFileLoader      = bugpack.require('bugunit.TestFileLoader');
-    var TestRunner          = bugpack.require('bugunit.TestRunner');
+    var TestRegistry        = bugpack.require('bugunit.TestRegistry');
     var TestTagProcessor    = bugpack.require('bugunit.TestTagProcessor');
     var TestTagScan         = bugpack.require('bugunit.TestTagScan');
 
@@ -49,7 +51,7 @@ require('bugpack').context("*", function(bugpack) {
     // Simplify References
     //-------------------------------------------------------------------------------
 
-    var $forEachParallel    = Flows.$forEachParallel;
+    var $iterableParallel   = Flows.$iterableParallel;
     var $series             = Flows.$series;
     var $task               = Flows.$task;
 
@@ -85,21 +87,9 @@ require('bugpack').context("*", function(bugpack) {
 
             /**
              * @private
-             * @type {Set.<Test>}
+             * @type {TestRegistry}
              */
-            this.registeredTestSet  = new Set();
-
-            /**
-             * @private
-             * @type {ReportCard}
-             */
-            this.reportCard         = new ReportCard();
-
-            /**
-             * @private
-             * @type {Set.<TestRunner>}
-             */
-            this.testRunnerSet      = new Set();
+            this.testRegistry       = new TestRegistry();
         },
 
 
@@ -108,17 +98,10 @@ require('bugpack').context("*", function(bugpack) {
         //-------------------------------------------------------------------------------
 
         /**
-         * @return {ReportCard}
+         * @return {TestRegistry}
          */
-        getReportCard: function() {
-            return this.reportCard;
-        },
-
-        /**
-         * @return {Set.<TestRunner>}
-         */
-        getTestRunnerSet: function() {
-            return this.testRunnerSet;
+        getTestRegistry: function() {
+            return this.testRegistry;
         },
 
 
@@ -126,32 +109,25 @@ require('bugpack').context("*", function(bugpack) {
         // Public Methods
         //-------------------------------------------------------------------------------
 
-
-        /**
-         * @param {Test} test
-         */
-        registerTest: function(test) {
-            if (!this.registeredTestSet.contains(test)) {
-                this.registeredTestSet.add(test);
-            }
-        },
-
         /**
          * @param {(string | Path)} testPath
          * @param {function(Throwable, ReportCard=)} callback
          */
-        start: function(testPath, callback) {
+        startAllTestsOnPath: function(testPath, callback) {
             testPath        = BugFs.path(testPath);
             var _this       = this;
             var reportCard  = null;
             $series([
                 $task(function(flow) {
+
+                    //TODO BRN: Improve this so that we can load tests from a path and then store them in memory for repeat calls to test a path
+
                     _this.loadAndScanTestFilesFromTestPath(testPath, function(throwable) {
                         flow.complete(throwable);
                     });
                 }),
                 $task(function(flow) {
-                    _this.runTests(true, function(throwable, returnedReportCard) {
+                    _this.runTests(_this.testRegistry.getAllTests(), true, function(throwable, returnedReportCard) {
                         if (!throwable) {
                             reportCard = returnedReportCard;
                         }
@@ -191,7 +167,7 @@ require('bugpack').context("*", function(bugpack) {
 
                     var BugMeta         = targetContext.require('bugmeta.BugMeta');
                     var metaContext     = BugMeta.context();
-                    var testTagScan     = new TestTagScan(metaContext, new TestTagProcessor(_this));
+                    var testTagScan     = new TestTagScan(metaContext, new TestTagProcessor(_this.testRegistry));
                     try {
                         testTagScan.scanAll();
                     } catch(caughtThrowable) {
@@ -206,31 +182,88 @@ require('bugpack').context("*", function(bugpack) {
 
         /**
          * @private
+         * @param {ICollection.<Test>} testCollection
          * @param {boolean} logResults
          * @param {function(Throwable, ReportCard=)} callback
          */
-        runTests: function(logResults, callback) {
-            var _this = this;
-            $forEachParallel(this.registeredTestSet.getValueArray(), function(flow, registeredTest) {
-                var testRunner = new TestRunner(registeredTest, logResults);
-                _this.testRunnerSet.add(testRunner);
-                testRunner.runTest(function(throwable, testResult) {
-                    if (!throwable) {
-                        _this.reportCard.addTestResult(testResult);
-                        flow.complete();
-                    } else {
-                        flow.error(throwable);
-                    }
-                });
-            }).execute(function(throwable) {
+        runTests: function(testCollection, logResults, callback) {
+            var testBatch           = this.factoryTestBatch(testCollection);
+            var testBatchProcessor  = this.factoryTestBatchProcessor(testBatch);
+            $series([
+                $task(function(flow) {
+                    testBatchProcessor.processTestBatch(logResults,  function(throwable) {
+                        flow.complete(throwable);
+                    });
+                })
+            ]).execute(function(throwable) {
                 if (!throwable) {
-                    callback(null, _this.reportCard);
+                    callback(null, testBatchProcessor.getReportCard());
                 } else {
                     callback(throwable);
                 }
             });
+        },
+
+
+        //-------------------------------------------------------------------------------
+        // Factory Methods
+        //-------------------------------------------------------------------------------
+
+        /**
+         * @private
+         * @param {(Array.<Test> | ICollection.<Test>)} tests
+         * @returns {TestBatch}
+         */
+        factoryTestBatch: function(tests) {
+            return new TestBatch(tests);
+        },
+
+        /**
+         * @private
+         * @param {TestBatch} testBatch
+         * @returns {TestBatchProcessor}
+         */
+        factoryTestBatchProcessor: function(testBatch) {
+            return new TestBatchProcessor(testBatch);
         }
     });
+
+
+    //-------------------------------------------------------------------------------
+    // Private Static Properties
+    //-------------------------------------------------------------------------------
+
+    /**
+     * @static
+     * @private
+     * @type {BugUnit}
+     */
+    BugUnit.instance = null;
+
+
+    //-------------------------------------------------------------------------------
+    // Static Methods
+    //-------------------------------------------------------------------------------
+
+    /**
+     * @static
+     * @return {BugUnit}
+     */
+    BugUnit.getInstance = function() {
+        if (BugUnit.instance === null) {
+            BugUnit.instance = new BugUnit();
+        }
+        return BugUnit.instance;
+    };
+
+
+    //-------------------------------------------------------------------------------
+    // Static Proxy
+    //-------------------------------------------------------------------------------
+
+    Proxy.proxy(BugUnit, Proxy.method(BugUnit.getInstance), [
+        "startAllTestsOnPath"
+    ]);
 
 
     //-------------------------------------------------------------------------------

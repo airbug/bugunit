@@ -43,9 +43,9 @@ var nodejs              = enableModule("nodejs");
 //-------------------------------------------------------------------------------
 
 var name                = "bugunit";
-var version             = "0.1.4";
+var version             = "0.1.5";
 var dependencies        = {
-    bugpack: "0.1.14",
+    bugpack: "0.2.0",
     npm: "1.4.x",
     tar: "1.0.0"
 };

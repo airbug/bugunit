@@ -81,6 +81,12 @@ require('bugpack').context("*", function(bugpack) {
              * @private
              * @type {boolean}
              */
+            this.completedFinalize  = false;
+
+            /**
+             * @private
+             * @type {boolean}
+             */
             this.completedSetup     = false;
 
             /**
@@ -103,9 +109,33 @@ require('bugpack').context("*", function(bugpack) {
 
             /**
              * @private
+             * @type {boolean}
+             */
+            this.finalizingTest     = false;
+
+            /**
+             * @private
              * @type {string}
              */
             this.name               = name;
+
+            /**
+             * @private
+             * @type {boolean}
+             */
+            this.settingUpTest      = false;
+
+            /**
+             * @private
+             * @type {boolean}
+             */
+            this.tearingDownTest      = false;
+
+            /**
+             * @private
+             * @type {boolean}
+             */
+            this.testingTest        = false;
 
             /**
              * @private
@@ -247,6 +277,18 @@ require('bugpack').context("*", function(bugpack) {
         /**
          *
          */
+        completeFinalize: function() {
+            if (!this.completedFinalize) {
+                this.completedFinalize = true;
+                this.dispatchFinalizeCompleteEvent();
+            } else {
+                throw new Bug("IllegalState", {}, "Test setup already complete");
+            }
+        },
+
+        /**
+         *
+         */
         completeSetup: function() {
             if (!this.completedSetup) {
                 this.completedSetup = true;
@@ -254,7 +296,7 @@ require('bugpack').context("*", function(bugpack) {
                     this.dispatchSetupCompleteEvent();
                 }
             } else {
-                throw new Bug("AlreadySetup", {}, "Test setup already complete");
+                throw new Bug("IllegalState", {}, "Test setup already complete");
             }
         },
 
@@ -264,11 +306,9 @@ require('bugpack').context("*", function(bugpack) {
         completeTearDown: function() {
             if (!this.completedTearDown) {
                 this.completedTearDown = true;
-                if (!this.errorOccurred) {
-                    this.dispatchTearDownCompleteEvent();
-                }
+                this.dispatchTearDownCompleteEvent();
             } else {
-                throw new Bug("AlreadyTornDown", {}, "Test tear down already complete");
+                throw new Bug("IllegalState", {}, "Test tear down already complete");
             }
         },
 
@@ -282,7 +322,7 @@ require('bugpack').context("*", function(bugpack) {
                     this.dispatchTestCompleteEvent();
                 }
             } else {
-                throw new Bug("AlreadyCompletedTest", {}, "Test already complete");
+                throw new Bug("IllegalState", {}, "Test already complete");
             }
         },
 
@@ -296,45 +336,76 @@ require('bugpack').context("*", function(bugpack) {
             }
         },
 
+
+        //-------------------------------------------------------------------------------
+        // Protected Methods
+        //-------------------------------------------------------------------------------
+
         /**
-         *
+         * @protected
+         */
+        finalize: function() {
+            if (!this.finalizingTest) {
+                this.finalizingTest = true;
+                if (TypeUtil.isFunction(this.testObject.final)) {
+                    this.testObject.final();
+                    if (!this.isAsync() || this.errorOccurred) {
+                        this.completeTearDown();
+                    }
+                } else {
+                    this.completeFinalize();
+                }
+            }
+        },
+
+        /**
+         * @protected
          */
         setup: function() {
-            if (TypeUtil.isFunction(this.testObject.setup)) {
-                this.testObject.setup(this);
-                if (!this.isAsync() || this.errorOccurred) {
+            if (!this.settingUpTest) {
+                this.settingUpTest = true;
+                if (TypeUtil.isFunction(this.testObject.setup)) {
+                    this.testObject.setup(this);
+                    if (!this.isAsync() || this.errorOccurred) {
+                        this.completeSetup();
+                    }
+                } else {
                     this.completeSetup();
                 }
-            } else {
-                this.completeSetup();
             }
         },
 
         /**
-         *
+         * @protected
          */
         tearDown: function() {
-            if (TypeUtil.isFunction(this.testObject.tearDown)) {
-                this.testObject.tearDown();
-                if (!this.isAsync() || this.errorOccurred) {
+            if (!this.tearingDownTest) {
+                this.tearingDownTest = true;
+                if (TypeUtil.isFunction(this.testObject.tearDown)) {
+                    this.testObject.tearDown();
+                    if (!this.isAsync() || this.errorOccurred) {
+                        this.completeTearDown();
+                    }
+                } else {
                     this.completeTearDown();
                 }
-            } else {
-                this.completeTearDown();
             }
         },
 
         /**
-         *
+         * @protected
          */
         test: function() {
-            if (TypeUtil.isFunction(this.testObject.test)) {
-                this.testObject.test(this);
-                if (!this.isAsync() || this.errorOccurred) {
-                    this.completeTest();
+            if (!this.testingTest) {
+                this.testingTest = true;
+                if (TypeUtil.isFunction(this.testObject.test)) {
+                    this.testObject.test(this);
+                    if (!this.isAsync() || this.errorOccurred) {
+                        this.completeTest();
+                    }
+                } else {
+                    throw new Bug("IllegalState", {}, "Missing test function for test '" + this.name + "'");
                 }
-            } else {
-                throw new Bug("IllegalState", {}, "Missing test function for test '" + this.name + "'");
             }
         },
 
@@ -361,6 +432,13 @@ require('bugpack').context("*", function(bugpack) {
         dispatchAssertionResultEvent: function(valid, message) {
             var assertionResult = new AssertionResult(valid, message);
             this.dispatchEvent(new Event(Test.EventType.ASSERTION_RESULT, assertionResult));
+        },
+
+        /**
+         * @private
+         */
+        dispatchFinalizeCompleteEvent: function() {
+            this.dispatchEvent(new Event(Test.EventType.FINALIZE_COMPLETE));
         },
 
         /**
@@ -404,6 +482,7 @@ require('bugpack').context("*", function(bugpack) {
      */
     Test.EventType = {
         ASSERTION_RESULT: "Test:AssertionResult",
+        FINALIZE_COMPLETE: "Test:SetupComplete",
         SETUP_COMPLETE: "Test:SetupComplete",
         TEAR_DOWN_COMPLETE: "Test:TearDownComplete",
         TEST_COMPLETE: "Test:TestComplete",

@@ -9,11 +9,14 @@
 // Annotations
 //-------------------------------------------------------------------------------
 
-//@Export('bugunit.TestTagProcessor')
+//@Export('bugunit.TestRegistry')
 
+//@Require('ArgumentBug')
 //@Require('Class')
+//@Require('Collections')
+//@Require('Exception')
 //@Require('Obj')
-//@Require('bugmeta.ITagProcessor')
+//@Require('TypeUtil')
 //@Require('bugunit.Test')
 
 
@@ -27,10 +30,13 @@ require('bugpack').context("*", function(bugpack) {
     // BugPack
     //-------------------------------------------------------------------------------
 
+    var ArgumentBug     = bugpack.require('ArgumentBug');
     var Class           = bugpack.require('Class');
+    var Collections     = bugpack.require('Collections');
+    var Exception       = bugpack.require('Exception');
     var Obj             = bugpack.require('Obj');
-    var ITagProcessor   = bugpack.require('bugmeta.ITagProcessor');
-    var Test            = bugpack.require('bugunit.Test');
+    var TypeUtil        = bugpack.require('TypeUtil');
+    var Test            = bugpack.require('buganno.Test');
 
 
     //-------------------------------------------------------------------------------
@@ -40,11 +46,10 @@ require('bugpack').context("*", function(bugpack) {
     /**
      * @class
      * @extends {Obj}
-     * @implements {ITagProcessor}
      */
-    var TestTagProcessor = Class.extend(Obj, {
+    var TestRegistry = Class.extend(Obj, {
 
-        _name: "bugunit.TestTagScan",
+        _name: "bugunit.TestRegistry",
 
 
         //-------------------------------------------------------------------------------
@@ -53,9 +58,8 @@ require('bugpack').context("*", function(bugpack) {
 
         /**
          * @constructs
-         * @param {TestRegistry} testRegistry
          */
-        _constructor: function(testRegistry) {
+        _constructor: function() {
 
             this._super();
 
@@ -66,73 +70,67 @@ require('bugpack').context("*", function(bugpack) {
 
             /**
              * @private
-             * @type {TestRegistry}
+             * @type {Map.<string, Test>}
              */
-            this.testRegistry        = testRegistry;
+            this.testNameToTestMap     = Collections.map();
         },
 
 
         //-------------------------------------------------------------------------------
-        // Getters and Setters
+        // Public Methods
         //-------------------------------------------------------------------------------
 
         /**
-         * @return {TestRegistry}
-         */
-        getTestRegistry: function() {
-            return this.testRegistry;
-        },
-
-
-        //-------------------------------------------------------------------------------
-        // ITagProcessor Implementation
-        //-------------------------------------------------------------------------------
-
-        /**
-         * @param {Tag} tag
-         */
-        process: function(tag) {
-            this.processTestTag(/** @type {TestTag} */(tag));
-        },
-
-
-        //-------------------------------------------------------------------------------
-        // Private Methods
-        //-------------------------------------------------------------------------------
-
-        /**
-         * @private
          * @param {string} testName
-         * @param {{}} testObject
          * @return {Test}
          */
-        factoryTest: function(testName, testObject) {
-            return new Test(testName, testObject);
+        getTestByName: function(testName) {
+            var test = this.testNameToTestMap.get(testName);
+            if (!test) {
+                throw new Exception("TestNotFound", {}, "Could not find test by the name '" + testName + "'");
+            }
+            return test;
         },
 
         /**
-         * @private
-         * @param {TestTag} testTag
+         * @param {(Array.<string> | ICollection.<string>)} testNames
+         * @return {ICollection.<Test>}
          */
-        processTestTag: function(testTag) {
-            var testObject  = testTag.getTagReference();
-            var testName    = testTag.getTestName();
-            var test        = this.factoryTest(testName, testObject);
-            this.testRegistry.registerTest(test);
+        getTestsByName: function(testNames) {
+            var _this = this;
+            return Collections.ensureStreamable(testNames)
+                .stream()
+                .map(function(testName) {
+                    return _this.getTestByName(testName);
+                })
+                .collectSync(Collections.collection());
+        },
+
+        /**
+         * @return {ICollection.<Test>}
+         */
+        getAllTests: function() {
+            return this.testNameToTestMap.getValueCollection();
+        },
+
+        /**
+         * @param {Test} test
+         */
+        registerTest: function(test) {
+            if (!Class.doesExtend(test, Test)) {
+                throw new ArgumentBug(ArgumentBug.ILLEGAL, "test", test, "parameter must extend Test");
+            }
+            if (!TypeUtil.isString(test.getName())) {
+                throw new ArgumentBug(ArgumentBug.ILLEGAL, "test", test, "Test must have name property set");
+            }
+            this.testNameToTestMap.put(test.getName(), test);
         }
     });
-
-
-    //-------------------------------------------------------------------------------
-    // Implement Interfaces
-    //-------------------------------------------------------------------------------
-
-    Class.implement(TestTagProcessor, ITagProcessor);
 
 
     //-------------------------------------------------------------------------------
     // Exports
     //-------------------------------------------------------------------------------
 
-    bugpack.export("bugunit.TestTagProcessor", TestTagProcessor);
+    bugpack.export('bugunit.TestRegistry', TestRegistry);
 });
