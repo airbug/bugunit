@@ -208,10 +208,6 @@ require('bugpack').context("*", function(bugpack) {
         setupProcessor: function() {
             var _this = this;
             process.on('exit', function() {
-
-                //TEST
-                console.log("Exit RECEIVED");
-
                 _this.forceFinalizeTests();
             });
         }
