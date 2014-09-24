@@ -208,6 +208,7 @@ require('bugpack').context("*", function(bugpack) {
             }
             if (!this.forceFinalizing) {
                 this.completed = true;
+                this.testResult.setCompleted(true);
             }
             this.callback(null, this.testResult);
         },
@@ -230,7 +231,7 @@ require('bugpack').context("*", function(bugpack) {
          */
         processError: function(error) {
             this.testResult.setError(error);
-            this.finalizeTest();
+            this.complete();
         },
 
         /**

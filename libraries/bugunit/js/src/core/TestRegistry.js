@@ -36,7 +36,7 @@ require('bugpack').context("*", function(bugpack) {
     var Exception       = bugpack.require('Exception');
     var Obj             = bugpack.require('Obj');
     var TypeUtil        = bugpack.require('TypeUtil');
-    var Test            = bugpack.require('buganno.Test');
+    var Test            = bugpack.require('bugunit.Test');
 
 
     //-------------------------------------------------------------------------------

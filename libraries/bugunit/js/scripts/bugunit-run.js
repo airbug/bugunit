@@ -49,6 +49,7 @@ require('bugpack').loadContext(module, function(error, bugpack) {
 
                     var errorOccurred = false;
                     var testsFailed = false;
+                    var incompleteTests = false;
                     reportCard.getFailedTestResultList().forEach(function(testResult) {
                         testsFailed = true;
                         console.log("Test '" + testResult.getTest().getName() + "' FAILED with " + testResult.numberFailedAssertions() + " of " +
@@ -65,6 +66,7 @@ require('bugpack').loadContext(module, function(error, bugpack) {
                     });
 
                     reportCard.getIncompleteTestResultList().forEach(function (testResult) {
+                        incompleteTests = true;
                         console.log("Test '" + testResult.getTest().getName() + "' did not complete");
                         var stack = Tracer.getNamedStack(testResult.getTest().getName());
                         if (stack) {
@@ -76,6 +78,8 @@ require('bugpack').loadContext(module, function(error, bugpack) {
                         callback(new Error("Error occurred while running tests."));
                     } else if (testsFailed) {
                         callback(new Error("Some tests failed while running the tests"));
+                    } else if (incompleteTests) {
+                        callback(new Error("Some tests never completed"));
                     } else {
                         callback();
                     }

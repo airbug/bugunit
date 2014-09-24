@@ -16,13 +16,8 @@
 //@Require('Exception')
 //@Require('Flows')
 //@Require('Obj')
-//@Require('Set')
 //@Require('bugunit.ReportCard')
-//@Require('bugunit.TestFileLoader')
-//@Require('bugunit.TestRegistry')
 //@Require('bugunit.TestRunner')
-//@Require('bugunit.TestTagProcessor')
-//@Require('bugunit.TestTagScan')
 
 
 //-------------------------------------------------------------------------------
@@ -40,13 +35,8 @@ require('bugpack').context("*", function(bugpack) {
     var Exception           = bugpack.require('Exception');
     var Flows               = bugpack.require('Flows');
     var Obj                 = bugpack.require('Obj');
-    var BugFs               = bugpack.require('bugfs.BugFs');
     var ReportCard          = bugpack.require('bugunit.ReportCard');
-    var TestFileLoader      = bugpack.require('bugunit.TestFileLoader');
-    var TestRegistry        = bugpack.require('bugunit.TestRegistry');
     var TestRunner          = bugpack.require('bugunit.TestRunner');
-    var TestTagProcessor    = bugpack.require('bugunit.TestTagProcessor');
-    var TestTagScan         = bugpack.require('bugunit.TestTagScan');
 
 
     //-------------------------------------------------------------------------------
@@ -184,7 +174,6 @@ require('bugpack').context("*", function(bugpack) {
          * @private
          */
         forceFinalizeTests: function() {
-            var _this = this;
             this.testRunnerSet.forEach(function(testRunner) {
                 if (!testRunner.isCompleted()) {
                     testRunner.forceFinalizeTest();
@@ -219,6 +208,10 @@ require('bugpack').context("*", function(bugpack) {
         setupProcessor: function() {
             var _this = this;
             process.on('exit', function() {
+
+                //TEST
+                console.log("Exit RECEIVED");
+
                 _this.forceFinalizeTests();
             });
         }

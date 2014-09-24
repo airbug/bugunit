@@ -105,6 +105,13 @@ require('bugpack').context("*", function(bugpack) {
         },
 
         /**
+         * @param {boolean} completed
+         */
+        setCompleted: function(completed) {
+            this.completed = completed;
+        },
+
+        /**
          * @return {Throwable}
          */
         getError: function() {

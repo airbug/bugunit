@@ -318,9 +318,7 @@ require('bugpack').context("*", function(bugpack) {
         completeTest: function() {
             if (!this.completedTest) {
                 this.completedTest = true;
-                if (!this.errorOccurred) {
-                    this.dispatchTestCompleteEvent();
-                }
+                this.dispatchTestCompleteEvent();
             } else {
                 throw new Bug("IllegalState", {}, "Test already complete");
             }
@@ -348,9 +346,9 @@ require('bugpack').context("*", function(bugpack) {
             if (!this.finalizingTest) {
                 this.finalizingTest = true;
                 if (TypeUtil.isFunction(this.testObject.final)) {
-                    this.testObject.final();
+                    this.testObject.final(this);
                     if (!this.isAsync() || this.errorOccurred) {
-                        this.completeTearDown();
+                        this.completeFinalize();
                     }
                 } else {
                     this.completeFinalize();
@@ -482,7 +480,7 @@ require('bugpack').context("*", function(bugpack) {
      */
     Test.EventType = {
         ASSERTION_RESULT: "Test:AssertionResult",
-        FINALIZE_COMPLETE: "Test:SetupComplete",
+        FINALIZE_COMPLETE: "Test:FinalizeComplete",
         SETUP_COMPLETE: "Test:SetupComplete",
         TEAR_DOWN_COMPLETE: "Test:TearDownComplete",
         TEST_COMPLETE: "Test:TestComplete",
