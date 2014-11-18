@@ -65,6 +65,7 @@ buildProperties({
         packageJson: {
             name: "{{name}}",
             version: "{{version}}",
+            description: "bugunit is a JavaScript unit testing library designed to run tests using bugmeta to declare tests",
             main: "./scripts/bugunit-node.js",
             bin: "bin/bugunit",
             scripts: {
