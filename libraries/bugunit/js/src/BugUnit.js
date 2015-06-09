@@ -212,7 +212,7 @@ require('bugpack').context("*", function(bugpack) {
         /**
          * @private
          * @param {(Array.<Test> | ICollection.<Test>)} tests
-         * @returns {TestBatch}
+         * @return {TestBatch}
          */
         factoryTestBatch: function(tests) {
             return new TestBatch(tests);
@@ -221,7 +221,7 @@ require('bugpack').context("*", function(bugpack) {
         /**
          * @private
          * @param {TestBatch} testBatch
-         * @returns {TestBatchProcessor}
+         * @return {TestBatchProcessor}
          */
         factoryTestBatchProcessor: function(testBatch) {
             return new TestBatchProcessor(testBatch);
