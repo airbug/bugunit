@@ -16,6 +16,7 @@
 //@Require('Collections')
 //@Require('Exception')
 //@Require('Obj')
+//@Require('Streams')
 //@Require('TypeUtil')
 //@Require('bugunit.Test')
 
@@ -35,6 +36,7 @@ require('bugpack').context("*", function(bugpack) {
     var Collections     = bugpack.require('Collections');
     var Exception       = bugpack.require('Exception');
     var Obj             = bugpack.require('Obj');
+    var Streams         = bugpack.require('Streams');
     var TypeUtil        = bugpack.require('TypeUtil');
     var Test            = bugpack.require('bugunit.Test');
 
@@ -98,7 +100,7 @@ require('bugpack').context("*", function(bugpack) {
          */
         getTestsByName: function(testNames) {
             var _this = this;
-            return Collections.ensureStreamable(testNames)
+            return Streams.ensureStreamable(testNames)
                 .stream()
                 .map(function(testName) {
                     return _this.getTestByName(testName);
@@ -110,7 +112,7 @@ require('bugpack').context("*", function(bugpack) {
          * @return {ICollection.<Test>}
          */
         getAllTests: function() {
-            return this.testNameToTestMap.getValueCollection();
+            return this.testNameToTestMap.toValueCollection();
         },
 
         /**
